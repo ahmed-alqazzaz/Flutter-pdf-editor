@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>69698436166-k7b1pcgbgn2odvapa223j5es6qbsc1so.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.69698436166-k7b1pcgbgn2odvapa223j5es6qbsc1so</string>
+	<key>API_KEY</key>
+	<string>AIzaSyALJIjK3WS-t2ULWADYJHYnG8oWqnRvobg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>69698436166</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.pdfEditor</string>
+	<key>PROJECT_ID</key>
+	<string>pdf-editor919</string>
+	<key>STORAGE_BUCKET</key>
+	<string>pdf-editor919.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:69698436166:ios:fceabcb31768700f13de47</string>
+</dict>
+</plist>

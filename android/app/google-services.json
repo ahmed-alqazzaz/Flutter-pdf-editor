@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "69698436166",
+    "project_id": "pdf-editor919",
+    "storage_bucket": "pdf-editor919.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:69698436166:android:05eac7ef7962e59b13de47",
+        "android_client_info": {
+          "package_name": "com.example.pdf_editor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "69698436166-cc985ll5u7965qmlr8hkfogq1gos911t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pdf_editor",
+            "certificate_hash": "705a689310aecefba2450a1eb705e7a1403cab17"
+          }
+        },
+        {
+          "client_id": "69698436166-n9olsfv0q3d923qu6oh2o6eu5nmsc5ju.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjdHLt4iLoTcFYci9NWFaCU58yPfSlaco"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "69698436166-fld54r7mfvje5jkggdlvdniifa2h5vo4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "69698436166-k7b1pcgbgn2odvapa223j5es6qbsc1so.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pdfEditor"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
