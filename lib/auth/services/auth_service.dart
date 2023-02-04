@@ -1,6 +1,6 @@
-import 'package:pdf_editor/services/auth/auth_exceptions.dart';
-import 'package:pdf_editor/services/auth/enums/firebase_provider_id.dart';
-import 'package:pdf_editor/services/auth/firebase_auth_provider.dart';
+import 'package:pdf_editor/auth/services/auth/auth_exceptions.dart';
+import 'package:pdf_editor/auth/services/auth/enums/firebase_provider_id.dart';
+import 'package:pdf_editor/auth/services/auth/firebase_auth_provider.dart';
 
 class AuthService {
   final provider = FirebaseAuthProvider();

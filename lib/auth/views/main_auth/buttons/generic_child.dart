@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pdf_editor/views/login/enums/button.dart';
+import 'package:pdf_editor/auth/views/main_auth/enums/button.dart';
 
 class GenericChild extends StatelessWidget {
   final Button button;
@@ -16,7 +16,7 @@ class GenericChild extends StatelessWidget {
       final ImageProvider<Object> image;
       final EdgeInsetsGeometry padding;
       final String text;
-      print(button);
+
       switch (button) {
         case Button.apple:
           image = const AssetImage("assets/apple_logo.png");
@@ -39,26 +39,34 @@ class GenericChild extends StatelessWidget {
           padding = const EdgeInsets.only(left: 0);
           text = 'failed';
       }
-      return Row(
-        children: [
-          Image(
-            image: image,
-            height: 30,
-          ),
-          Padding(
-            padding: padding,
-            child: Center(
-              child: Text(
-                text,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return Row(
+            children: [
+              Container(
+                alignment: Alignment.center,
+                width: constraints.maxWidth * 0.15,
+                child: Image(
+                  image: image,
+                  height: 30,
                 ),
               ),
-            ),
-          ),
-        ],
+              Container(
+                width: constraints.maxWidth * 0.7,
+                alignment: Alignment.center,
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(width: constraints.maxWidth * 0.15),
+            ],
+          );
+        },
       );
     } else {
       final String text;

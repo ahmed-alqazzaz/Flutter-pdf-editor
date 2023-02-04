@@ -2,25 +2,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_login_facebook/flutter_login_facebook.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:pdf_editor/services/auth/auth_exceptions.dart';
-import 'package:pdf_editor/services/auth/enums/firebase_provider_id.dart';
+import 'package:pdf_editor/auth/services/auth/auth_exceptions.dart';
 
-import '../../firebase_options.dart';
+import '../../../firebase_options.dart';
 import 'auth_user.dart';
 
 class FirebaseAuthProvider {
   factory FirebaseAuthProvider() {
     return _singleton;
   }
-<<<<<<< HEAD
   static const FirebaseAuthProvider _singleton =
       FirebaseAuthProvider._internal();
   const FirebaseAuthProvider._internal();
-=======
-  static final FirebaseAuthProvider _singleton =
-      FirebaseAuthProvider._internal();
-  FirebaseAuthProvider._internal();
->>>>>>> 75343b6ff636078c367dc445d9cadca6623ad920
 
   Future<void> initialize() async {
     await Firebase.initializeApp(
@@ -66,7 +59,6 @@ class FirebaseAuthProvider {
     } catch (e) {
       throw GenericAuthException(e as Exception);
     }
-<<<<<<< HEAD
   }
 
   Future<void> signInAnonymously() async {
@@ -83,16 +75,6 @@ class FirebaseAuthProvider {
     } catch (e) {
       throw GenericAuthException(e as Exception);
     }
-=======
-
-    // TODO
-  }
-
-  Future<void> signInAnonymously() async {
-    await FirebaseAuth.instance.signInAnonymously();
-
-    //TODO: HANDLE ERRORS
->>>>>>> 75343b6ff636078c367dc445d9cadca6623ad920
   }
 
   Future<void> signInWithEmailAndPassword({
@@ -190,7 +172,6 @@ class FirebaseAuthProvider {
   Future<void> signInWithApple() async {
     // TODO: implement apple login
   }
-<<<<<<< HEAD
 
   Future<void> signOut() async {
     if (currentUser != null) {
@@ -208,6 +189,4 @@ class FirebaseAuthProvider {
       throw UserNotLoggedInAuthException();
     }
   }
-=======
->>>>>>> 75343b6ff636078c367dc445d9cadca6623ad920
 }
