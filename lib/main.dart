@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
+import 'package:pdf_editor/auth/views/main_auth/buttons/generic_button.dart';
+import 'package:pdf_editor/auth/views/main_auth/buttons/generic_child.dart';
+import 'package:pdf_editor/auth/views/main_auth/enums/button.dart';
 
 import 'package:pdf_editor/auth/views/main_auth/main_auth_view.dart';
 
@@ -43,9 +47,9 @@ class PageNavigator extends StatelessWidget {
       child: const CircularProgressIndicator(),
       listener: (context, state) {
         if (state is AuthStateMain) {
-          Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const MainAuthView()),
-              (route) => false);
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const MainAuthView()),
+          );
         }
       },
     );

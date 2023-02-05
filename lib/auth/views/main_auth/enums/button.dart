@@ -4,4 +4,6 @@ enum Button {
   apple,
   login,
   createAccount,
+  nextEnabled,
+  nextDisabled,
 }

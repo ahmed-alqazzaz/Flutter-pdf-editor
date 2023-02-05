@@ -14,29 +14,29 @@ class GenericChild extends StatelessWidget {
         button == Button.facebook ||
         button == Button.google) {
       final ImageProvider<Object> image;
-      final EdgeInsetsGeometry padding;
+
       final String text;
 
       switch (button) {
         case Button.apple:
           image = const AssetImage("assets/apple_logo.png");
-          padding = const EdgeInsets.only(left: 74.0);
+
           text = 'Continue with Apple';
           break;
         case Button.facebook:
           image = const AssetImage("assets/facebook_logo.png");
-          padding = const EdgeInsets.only(left: 60.0);
+
           text = "Continue With Facebook";
           break;
         case Button.google:
           image = const AssetImage("assets/google_logo.png");
-          padding = const EdgeInsets.only(left: 69.0);
+
           text = "Continue With Gooogle";
           break;
         default:
           // TODO: add failed image && failed text etc..
           image = const AssetImage("assets/apple_logo.png");
-          padding = const EdgeInsets.only(left: 0);
+
           text = 'failed';
       }
       return LayoutBuilder(
@@ -76,6 +76,14 @@ class GenericChild extends StatelessWidget {
         case Button.login:
           text = "Log in";
           textColor = Colors.white;
+          break;
+        case Button.nextEnabled:
+          text = "Next";
+          textColor = Colors.black;
+          break;
+        case Button.nextDisabled:
+          text = "Next";
+          textColor = const Color.fromARGB(255, 115, 112, 112);
           break;
         case Button.createAccount:
           text = "Create account";

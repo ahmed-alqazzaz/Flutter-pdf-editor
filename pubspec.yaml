@@ -67,15 +67,24 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
+    
     - assets/google_logo.png
     - assets/facebook_logo.png
     - assets/apple_logo.png
+    - assets/email_logo.png
+    
     
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+flutter_assets:
+  assets_path: assets/
+  output_path: lib/constants/
+  filename: assets.dart
+  field_prefix: resource
 
   # To add assets to your application, add an assets section, like this:
   # assets:

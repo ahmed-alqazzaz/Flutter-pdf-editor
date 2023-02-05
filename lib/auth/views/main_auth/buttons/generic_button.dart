@@ -5,7 +5,7 @@ typedef OnPressed = void Function();
 class GenericButton extends StatelessWidget {
   final MaterialStateProperty<Color?>? backgroundColor;
   final Widget child;
-  final OnPressed onPressed;
+  final OnPressed? onPressed;
 
   const GenericButton(
       {super.key,
@@ -16,7 +16,7 @@ class GenericButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextButton(
           style: ButtonStyle(
             backgroundColor: backgroundColor,

@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_login_facebook/flutter_login_facebook.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:pdf_editor/auth/services/auth/auth_exceptions.dart';
+import 'package:pdf_editor/auth/services/auth_exceptions.dart';
 
-import '../../../firebase_options.dart';
+import '../../firebase_options.dart';
 import 'auth_user.dart';
 
 class FirebaseAuthProvider {
