@@ -72,3 +72,65 @@ class AuthService {
     return await provider.sendEmailVerification();
   }
 }
+
+class AuthServices {
+  final provider = FirebaseAuthProvider();
+  static withEmailAndPassword() => EmailAndPasswordAuthservice();
+  static withGoogle() => GoogleAuthservice();
+  static FacebookAuthservice withFacebook() => FacebookAuthservice();
+  static withApple() => AppleAuthservice();
+  static withAnonymous() => AnonymousAuthservice();
+
+  Future<void> initialize() async => await provider.initialize();
+  Future<void> signOut() async => await provider.signOut();
+}
+
+class GoogleAuthservice extends AuthServices {
+  Future<void> signIn() async {
+    return await provider.signInWithGoogle();
+  }
+}
+
+class FacebookAuthservice extends AuthServices {
+  Future<void> signIn() async {
+    return await provider.signInWithFacebook();
+  }
+}
+
+class AppleAuthservice extends AuthServices {
+  Future<void> signIn() async {
+    return await provider.signInWithApple();
+  }
+}
+
+class AnonymousAuthservice extends AuthServices {
+  Future<void> signIn() async {
+    return await provider.signInAnonymously();
+  }
+}
+
+class EmailAndPasswordAuthservice extends AuthServices {
+  Future<void> createUser({
+    required String email,
+    required String password,
+  }) async {
+    return provider.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<void> signIn({
+    required String email,
+    required String password,
+  }) async {
+    return await provider.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<void> sendEmailVerification() async {
+    return await provider.sendEmailVerification();
+  }
+}

@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pdf_editor/auth/services/enums/firebase_provider_id.dart';
 
 class AuthUser {
   final String? email;

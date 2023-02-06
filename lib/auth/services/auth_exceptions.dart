@@ -8,8 +8,6 @@ class InvalidEmailAuthException implements Exception {}
 
 class UserNotLoggedInAuthException implements Exception {}
 
-class UnexpectedFirebaseProviderIdAuthException implements Exception {}
-
 // Login Exceptions
 class UserNotFoundAuthException implements Exception {}
 

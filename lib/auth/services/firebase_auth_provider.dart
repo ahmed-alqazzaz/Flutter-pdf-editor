@@ -8,13 +8,6 @@ import '../../firebase_options.dart';
 import 'auth_user.dart';
 
 class FirebaseAuthProvider {
-  factory FirebaseAuthProvider() {
-    return _singleton;
-  }
-  static const FirebaseAuthProvider _singleton =
-      FirebaseAuthProvider._internal();
-  const FirebaseAuthProvider._internal();
-
   Future<void> initialize() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
