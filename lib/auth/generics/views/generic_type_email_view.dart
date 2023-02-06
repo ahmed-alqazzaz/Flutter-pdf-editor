@@ -1,35 +1,35 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pdf_editor/auth/bloc/auth_bloc.dart';
-import 'package:pdf_editor/auth/bloc/auth_event.dart';
-import 'package:pdf_editor/auth/bloc/auth_state.dart';
-import 'package:pdf_editor/auth/bloc/enums/current_login_page.dart';
+import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 
-import '../main_auth/buttons/generic_button.dart';
-import '../main_auth/buttons/generic_child.dart';
-import '../main_auth/enums/button.dart';
+import '../../bloc/auth_bloc.dart';
+import '../../bloc/auth_event.dart';
+import '../../bloc/auth_state.dart';
+import '../../views/main_auth/enums/button.dart';
+import '../buttons/generic_button.dart';
+import '../buttons/generic_child.dart';
 
-class LoginEmailView extends StatefulWidget {
-  const LoginEmailView({super.key});
+typedef OnNext = void Function();
+
+class GenericTypeEmailView extends StatefulWidget {
+  final OnNext onNext;
+  final AuthType authType;
+
+  const GenericTypeEmailView(
+      {super.key, required this.authType, required this.onNext});
 
   @override
-  State<LoginEmailView> createState() => _LoginEmailViewState();
+  State<GenericTypeEmailView> createState() => _GenericTypeEmailViewState();
 }
 
-class _LoginEmailViewState extends State<LoginEmailView> {
+class _GenericTypeEmailViewState extends State<GenericTypeEmailView> {
+  AuthBloc? authBloc;
+  bool _isEmailValid = false;
+  Color _textFieldBorderColor = const Color.fromRGBO(186, 186, 186, 100);
+
+  late final String headerText;
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
-  bool isEmailValid = false;
-  AuthBloc? authBloc;
-  Color textFieldBorderColor = const Color.fromRGBO(186, 186, 186, 100);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   void didChangeDependencies() {
@@ -38,40 +38,56 @@ class _LoginEmailViewState extends State<LoginEmailView> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
+    if (widget.authType == AuthType.register) {
+      headerText = 'Create account';
+    } else {
+      headerText = 'Log in';
+    }
     _focusNode = FocusNode();
     _controller = TextEditingController();
     _controller.addListener(() {
       //check if email is valid
       String text = _controller.text.toLowerCase();
-      isEmailValid = RegExp(
+
+      _isEmailValid = RegExp(
               r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
           .hasMatch(text);
 
-      if (text.isNotEmpty && isEmailValid == false) {
-        authBloc?.add(
-          AuthEventSeekLogin(
-            textFieldBorderColor: const Color.fromARGB(255, 31, 94, 203),
-            currentLoginPage: CurrentLoginPage.email,
-            isFieldValid: isEmailValid,
-          ),
-        );
-      } else if (text.isEmpty && isEmailValid == false) {
-        authBloc?.add(
-          AuthEventSeekLogin(
-            textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
-            currentLoginPage: CurrentLoginPage.email,
-            isFieldValid: isEmailValid,
-          ),
-        );
-      } else if (text.isNotEmpty && isEmailValid == true) {
-        authBloc?.add(
-          AuthEventSeekLogin(
-            textFieldBorderColor: Colors.green,
-            currentLoginPage: CurrentLoginPage.email,
-            isFieldValid: isEmailValid,
-          ),
-        );
+      try {
+        if (text.isNotEmpty && _isEmailValid == false) {
+          authBloc?.add(
+            AuthEventTypeEmail(
+              textFieldBorderColor: const Color.fromARGB(255, 31, 94, 203),
+              authType: widget.authType,
+              isFieldValid: _isEmailValid,
+            ),
+          );
+        } else if (text.isEmpty && _isEmailValid == false) {
+          authBloc?.add(
+            AuthEventTypeEmail(
+              textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
+              authType: widget.authType,
+              isFieldValid: _isEmailValid,
+            ),
+          );
+        } else if (text.isNotEmpty && _isEmailValid == true) {
+          authBloc?.add(
+            AuthEventTypeEmail(
+              textFieldBorderColor: Colors.green,
+              authType: widget.authType,
+              isFieldValid: _isEmailValid,
+            ),
+          );
+        }
+      } catch (e) {
+        print(e);
       }
     });
 
@@ -90,15 +106,15 @@ class _LoginEmailViewState extends State<LoginEmailView> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (previousState, currentState) {
-        if (currentState is AuthStateLoggingIn &&
-            currentState.currentLoginPage == CurrentLoginPage.email &&
-            previousState is AuthStateLoggingIn &&
-            previousState.currentLoginPage == CurrentLoginPage.email) {
+        if (currentState is AuthStateTypingEmail &&
+            currentState.authType == widget.authType &&
+            previousState is AuthStateTypingEmail &&
+            previousState.authType == widget.authType) {
           // in case the user type a valid email then deletes it
           if (currentState.isFieldValid == false &&
               previousState.isFieldValid == true) {
             setState(() {
-              textFieldBorderColor = Colors.red;
+              _textFieldBorderColor = Colors.red;
             });
 
             return false;
@@ -107,12 +123,12 @@ class _LoginEmailViewState extends State<LoginEmailView> {
         return true;
       },
       listener: (context, state) {
-        if (state is AuthStateLoggingIn &&
-            state.currentLoginPage == CurrentLoginPage.email) {
+        if (state is AuthStateTypingEmail &&
+            state.authType == widget.authType) {
           // in case the user type valid email then deletes it
           setState(() {
-            textFieldBorderColor = state.textFieldBorderColor;
-            isEmailValid = state.isFieldValid;
+            _textFieldBorderColor = state.textFieldBorderColor;
+            _isEmailValid = state.isFieldValid;
           });
         }
       },
@@ -142,7 +158,9 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               _focusNode.unfocus();
                             });
-                            Future.delayed(const Duration(milliseconds: 300))
+                            // TODO: consider increasing the duration of the navigator animation instead of waiting
+                            //wait for keyboard to go down
+                            Future.delayed(const Duration(milliseconds: 200))
                                 .then(
                               (value) {
                                 context.read<AuthBloc>().add(
@@ -160,9 +178,9 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                       Container(
                         alignment: Alignment.bottomCenter,
                         width: constraints.maxWidth * 0.6,
-                        child: const Text(
-                          "Create account",
-                          style: TextStyle(
+                        child: Text(
+                          headerText,
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -207,7 +225,7 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                             ),
                             focusedBorder: UnderlineInputBorder(
                               borderSide: BorderSide(
-                                color: textFieldBorderColor,
+                                color: _textFieldBorderColor,
                                 width: 2,
                               ),
                             ),
@@ -217,16 +235,16 @@ class _LoginEmailViewState extends State<LoginEmailView> {
                           autofocus: false,
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 20),
                       GenericButton(
-                          backgroundColor: isEmailValid
+                          backgroundColor: _isEmailValid
                               ? null
                               : MaterialStateProperty.all(
                                   const Color.fromRGBO(250, 250, 250, 100),
                                 ),
-                          onPressed: () {},
+                          onPressed: _isEmailValid ? widget.onNext : null,
                           child: GenericChild(
-                            button: isEmailValid
+                            button: _isEmailValid
                                 ? Button.nextEnabled
                                 : Button.nextDisabled,
                           ))
@@ -241,7 +259,7 @@ class _LoginEmailViewState extends State<LoginEmailView> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _focusNode.unfocus();
           });
-          Future.delayed(const Duration(milliseconds: 300)).then(
+          Future.delayed(const Duration(milliseconds: 100)).then(
             (value) {
               context
                   .read<AuthBloc>()

@@ -1,25 +1,27 @@
 import 'dart:ui';
 
-import 'enums/current_login_page.dart';
+import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 
 abstract class AuthEvent {
   const AuthEvent();
 }
 
 class AuthEventSeekMain extends AuthEvent {
-  final bool shouldSkipButtonGlow;
   const AuthEventSeekMain({
     required this.shouldSkipButtonGlow,
   });
+
+  final bool shouldSkipButtonGlow;
 }
 
-class AuthEventSeekLogin extends AuthEvent {
-  final CurrentLoginPage currentLoginPage;
-  final bool isFieldValid;
-  final Color textFieldBorderColor;
-  AuthEventSeekLogin({
+class AuthEventTypeEmail extends AuthEvent {
+  AuthEventTypeEmail({
     required this.textFieldBorderColor,
-    required this.currentLoginPage,
+    required this.authType,
     required this.isFieldValid,
   });
+
+  final AuthType authType;
+  final bool isFieldValid;
+  final Color textFieldBorderColor;
 }

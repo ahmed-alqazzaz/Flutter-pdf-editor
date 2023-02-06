@@ -5,11 +5,9 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final GlobalKey<NavigatorState> navigatorKey;
-  String? currentRoute;
-
   AuthBloc(this.navigatorKey) : super(const AuthStateInitial()) {
     on<AuthEventSeekMain>((event, emit) {
+      print("1");
       navigatorKey.currentState?.popUntil((route) {
         currentRoute = route.settings.name;
         if (currentRoute != '/auth/main_auth/') {
@@ -22,8 +20,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         AuthStateMain(shouldSkipButtonGlow: event.shouldSkipButtonGlow),
       );
     });
-    on<AuthEventSeekLogin>(
+    on<AuthEventTypeEmail>(
       (event, emit) async {
+        print(event.authType);
         navigatorKey.currentState?.popUntil((route) {
           currentRoute = route.settings.name;
           if (currentRoute != '/auth/login/email/') {
@@ -33,12 +32,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           return true;
         });
 
-        emit(AuthStateLoggingIn(
+        emit(AuthStateTypingEmail(
           textFieldBorderColor: event.textFieldBorderColor,
-          currentLoginPage: event.currentLoginPage,
+          authType: event.authType,
           isFieldValid: event.isFieldValid,
         ));
       },
     );
   }
+
+  String? currentRoute;
+  final GlobalKey<NavigatorState> navigatorKey;
 }

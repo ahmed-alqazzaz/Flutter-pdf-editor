@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:pdf_editor/auth/views/main_auth/enums/button.dart';
 
 class GenericChild extends StatelessWidget {
-  final Button button;
   const GenericChild({
     super.key,
     required this.button,
   });
+
+  final Button button;
 
   @override
   Widget build(BuildContext context) {

@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
-import 'package:pdf_editor/auth/views/login/login_email_view.dart';
-import 'package:pdf_editor/auth/views/main_auth/buttons/generic_button.dart';
-import 'package:pdf_editor/auth/views/main_auth/buttons/generic_child.dart';
+import 'package:pdf_editor/auth/views/login/login_type_email_view.dart';
+import 'package:pdf_editor/auth/generics/buttons/generic_button.dart';
+import 'package:pdf_editor/auth/generics/buttons/generic_child.dart';
 import 'package:pdf_editor/auth/views/main_auth/enums/button.dart';
 
 import 'package:pdf_editor/auth/views/main_auth/main_auth_view.dart';
 
 import 'auth/bloc/auth_bloc.dart';
 import 'auth/bloc/auth_state.dart';
+import 'auth/views/register/register_type_email_view.dart';
 
 void main() {
   runApp(const PDFEditor());
@@ -33,7 +34,7 @@ class _PdfEditorState extends State<PDFEditor> {
         navigatorKey: _navigatorKey,
         routes: {
           "/auth/main_auth/": (context) => const MainAuthView(),
-          '/auth/login/email/': (context) => const LoginEmailView()
+          '/auth/login/email/': (context) => const RegisterTypeEmailView()
         },
         debugShowCheckedModeBanner: false,
         home: const PageNavigator(),
@@ -53,6 +54,7 @@ class PageNavigator extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       child: const CircularProgressIndicator(),
       listener: (context, state) {
+        print(state);
         if (state is AuthStateMain) {
           // Navigator.of(context)
           //     .pushNamedAndRemoveUntil('/auth/main_auth/', (route) => false);

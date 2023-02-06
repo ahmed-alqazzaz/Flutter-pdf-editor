@@ -1,1 +1,0 @@
-enum CurrentLoginPage { email, password }

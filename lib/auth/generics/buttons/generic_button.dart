@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 typedef OnPressed = void Function();
 
 class GenericButton extends StatelessWidget {
-  final MaterialStateProperty<Color?>? backgroundColor;
-  final Widget child;
-  final OnPressed? onPressed;
-
   const GenericButton(
       {super.key,
       this.backgroundColor,
       required this.child,
       required this.onPressed});
+
+  final MaterialStateProperty<Color?>? backgroundColor;
+  final Widget child;
+  final OnPressed? onPressed;
 
   @override
   Widget build(BuildContext context) {

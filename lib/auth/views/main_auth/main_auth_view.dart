@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pdf_editor/auth/bloc/enums/current_login_page.dart';
+import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 
 import 'package:pdf_editor/auth/services/firebase_auth_provider.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
@@ -8,8 +8,8 @@ import 'package:pdf_editor/auth/bloc/auth_event.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_state.dart';
 
-import 'buttons/generic_button.dart';
-import 'buttons/generic_child.dart';
+import '../../generics/buttons/generic_button.dart';
+import '../../generics/buttons/generic_child.dart';
 import 'enums/button.dart';
 
 class MainAuthView extends StatefulWidget {
@@ -20,8 +20,8 @@ class MainAuthView extends StatefulWidget {
 }
 
 class _MainAuthViewState extends State<MainAuthView> {
-  late List<Shadow>? skipButtonShadows;
   late Color skipButtonColor;
+  late List<Shadow>? skipButtonShadows;
 
   @override
   Widget build(BuildContext context) {
@@ -112,10 +112,10 @@ class _MainAuthViewState extends State<MainAuthView> {
                     ),
                     onPressed: () async {
                       context.read<AuthBloc>().add(
-                            AuthEventSeekLogin(
+                            AuthEventTypeEmail(
                               textFieldBorderColor:
                                   const Color.fromRGBO(186, 186, 186, 100),
-                              currentLoginPage: CurrentLoginPage.email,
+                              authType: AuthType.login,
                               isFieldValid: false,
                             ),
                           );

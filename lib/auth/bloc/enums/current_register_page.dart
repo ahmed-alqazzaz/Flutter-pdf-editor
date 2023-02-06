@@ -1,1 +1,0 @@
-enum CurrentRegisterPage { email, password }
