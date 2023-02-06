@@ -21,8 +21,9 @@ class LoginEmailView extends StatefulWidget {
 class _LoginEmailViewState extends State<LoginEmailView> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
-  late bool isEmailValid;
+  bool isEmailValid = false;
   AuthBloc? authBloc;
+  Color textFieldBorderColor = const Color.fromRGBO(186, 186, 186, 100);
 
   @override
   void dispose() {
@@ -46,12 +47,32 @@ class _LoginEmailViewState extends State<LoginEmailView> {
       isEmailValid = RegExp(
               r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
           .hasMatch(text);
-      authBloc?.add(
-        AuthEventSeekLogin(
-          currentLoginPage: CurrentLoginPage.email,
-          isFieldValid: isEmailValid,
-        ),
-      );
+
+      if (text.isNotEmpty && isEmailValid == false) {
+        authBloc?.add(
+          AuthEventSeekLogin(
+            textFieldBorderColor: const Color.fromARGB(255, 31, 94, 203),
+            currentLoginPage: CurrentLoginPage.email,
+            isFieldValid: isEmailValid,
+          ),
+        );
+      } else if (text.isEmpty && isEmailValid == false) {
+        authBloc?.add(
+          AuthEventSeekLogin(
+            textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
+            currentLoginPage: CurrentLoginPage.email,
+            isFieldValid: isEmailValid,
+          ),
+        );
+      } else if (text.isNotEmpty && isEmailValid == true) {
+        authBloc?.add(
+          AuthEventSeekLogin(
+            textFieldBorderColor: Colors.green,
+            currentLoginPage: CurrentLoginPage.email,
+            isFieldValid: isEmailValid,
+          ),
+        );
+      }
     });
 
     // when directly making the textfield auto focus, overflow error occurs
@@ -67,109 +88,169 @@ class _LoginEmailViewState extends State<LoginEmailView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.select((AuthBloc bloc) => bloc.state);
-    if (state is AuthStateLoggingIn &&
-        state.currentLoginPage == CurrentLoginPage.email) {
-      isEmailValid = state.isFieldValid;
-    }
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Scaffold(
-          body: Column(
-            children: [
-              const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previousState, currentState) {
+        if (currentState is AuthStateLoggingIn &&
+            currentState.currentLoginPage == CurrentLoginPage.email &&
+            previousState is AuthStateLoggingIn &&
+            previousState.currentLoginPage == CurrentLoginPage.email) {
+          // in case the user type a valid email then deletes it
+          if (currentState.isFieldValid == false &&
+              previousState.isFieldValid == true) {
+            setState(() {
+              textFieldBorderColor = Colors.red;
+            });
+
+            return false;
+          }
+        }
+        return true;
+      },
+      listener: (context, state) {
+        if (state is AuthStateLoggingIn &&
+            state.currentLoginPage == CurrentLoginPage.email) {
+          // in case the user type valid email then deletes it
+          setState(() {
+            textFieldBorderColor = state.textFieldBorderColor;
+            isEmailValid = state.isFieldValid;
+          });
+        }
+      },
+      child: WillPopScope(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Scaffold(
+              body: Column(
                 children: [
-                  Container(
-                    alignment: Alignment.bottomLeft,
-                    width: constraints.maxWidth * 0.2,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Icon(
-                        Icons.arrow_back_outlined,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.bottomCenter,
-                    width: constraints.maxWidth * 0.6,
-                    child: const Text(
-                      "Create account",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: constraints.maxWidth * 0.2,
-                  )
-                ],
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: constraints.maxWidth * 0.04),
-                child: Column(children: [
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "Enter your email",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: TextField(
-                      focusNode: _focusNode,
-                      controller: _controller,
-                      textAlignVertical: const TextAlignVertical(y: 1),
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(vertical: 7),
-                        prefixIcon: Image(
-                          alignment: Alignment(-0.5, 0.5),
-                          image: AssetImage("assets/email_logo.png"),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color.fromARGB(255, 31, 94, 203),
-                            width: 2,
+                    children: [
+                      Container(
+                        alignment: Alignment.bottomLeft,
+                        width: constraints.maxWidth * 0.2,
+                        child: TextButton(
+                          style: ButtonStyle(
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                            ),
+                          ),
+                          onPressed: () {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _focusNode.unfocus();
+                            });
+                            Future.delayed(const Duration(milliseconds: 300))
+                                .then(
+                              (value) {
+                                context.read<AuthBloc>().add(
+                                    const AuthEventSeekMain(
+                                        shouldSkipButtonGlow: false));
+                              },
+                            );
+                          },
+                          child: const Icon(
+                            Icons.arrow_back_outlined,
+                            color: Colors.black,
                           ),
                         ),
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                      autocorrect: true,
-                      autofocus: false,
-                    ),
+                      Container(
+                        alignment: Alignment.bottomCenter,
+                        width: constraints.maxWidth * 0.6,
+                        child: const Text(
+                          "Create account",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: constraints.maxWidth * 0.2,
+                      )
+                    ],
                   ),
-                  const SizedBox(height: 30),
-                  GenericButton(
-                      backgroundColor: isEmailValid
-                          ? null
-                          : MaterialStateProperty.all(
-                              Color.fromARGB(26, 123, 123, 123),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: constraints.maxWidth * 0.04),
+                    child: Column(children: [
+                      const SizedBox(height: 50),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Enter your email",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
                             ),
-                      onPressed: () {},
-                      child: GenericChild(
-                        button: isEmailValid
-                            ? Button.nextEnabled
-                            : Button.nextDisabled,
-                      ))
-                ]),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: TextField(
+                          focusNode: _focusNode,
+                          controller: _controller,
+                          textAlignVertical: const TextAlignVertical(y: 1),
+                          decoration: InputDecoration(
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 7),
+                            prefixIcon: const Image(
+                              alignment: Alignment(-0.5, 0.5),
+                              image: AssetImage("assets/email_logo.png"),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: textFieldBorderColor,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          autocorrect: true,
+                          autofocus: false,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      GenericButton(
+                          backgroundColor: isEmailValid
+                              ? null
+                              : MaterialStateProperty.all(
+                                  const Color.fromRGBO(250, 250, 250, 100),
+                                ),
+                          onPressed: () {},
+                          child: GenericChild(
+                            button: isEmailValid
+                                ? Button.nextEnabled
+                                : Button.nextDisabled,
+                          ))
+                    ]),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+        onWillPop: () async {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _focusNode.unfocus();
+          });
+          Future.delayed(const Duration(milliseconds: 300)).then(
+            (value) {
+              context
+                  .read<AuthBloc>()
+                  .add(const AuthEventSeekMain(shouldSkipButtonGlow: false));
+            },
+          );
+          return false;
+        },
+      ),
     );
   }
 }

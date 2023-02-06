@@ -83,7 +83,7 @@ class GenericChild extends StatelessWidget {
           break;
         case Button.nextDisabled:
           text = "Next";
-          textColor = const Color.fromARGB(255, 115, 112, 112);
+          textColor = const Color.fromRGBO(167, 167, 167, 100);
           break;
         case Button.createAccount:
           text = "Create account";

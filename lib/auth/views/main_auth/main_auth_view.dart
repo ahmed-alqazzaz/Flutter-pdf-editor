@@ -5,10 +5,9 @@ import 'package:pdf_editor/auth/bloc/enums/current_login_page.dart';
 import 'package:pdf_editor/auth/services/firebase_auth_provider.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
 
-import '../../../main.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_state.dart';
-import '../login/login_email_view.dart';
+
 import 'buttons/generic_button.dart';
 import 'buttons/generic_child.dart';
 import 'enums/button.dart';
@@ -112,22 +111,21 @@ class _MainAuthViewState extends State<MainAuthView> {
                       Colors.deepPurple,
                     ),
                     onPressed: () async {
-                      await FirebaseAuthProvider().initialize();
+                      context.read<AuthBloc>().add(
+                            AuthEventSeekLogin(
+                              textFieldBorderColor:
+                                  const Color.fromRGBO(186, 186, 186, 100),
+                              currentLoginPage: CurrentLoginPage.email,
+                              isFieldValid: false,
+                            ),
+                          );
                     },
                     child: const GenericChild(
                       button: Button.login,
                     ),
                   ),
                   GenericButton(
-                    onPressed: () {
-                      context.read<AuthBloc>().add(AuthEventSeekLogin(
-                          currentLoginPage: CurrentLoginPage.email,
-                          isFieldValid: false));
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const LoginEmailView()),
-                      );
-                    },
+                    onPressed: () {},
                     child: const GenericChild(
                       button: Button.createAccount,
                     ),

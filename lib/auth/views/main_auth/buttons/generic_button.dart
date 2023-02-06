@@ -30,7 +30,7 @@ class GenericButton extends StatelessWidget {
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30.0),
                 side: const BorderSide(
-                  color: Color.fromARGB(255, 115, 112, 112),
+                  color: Color.fromRGBO(186, 186, 186, 100),
                   width: 1,
                 ),
               ),
