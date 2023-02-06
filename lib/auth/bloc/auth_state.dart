@@ -26,10 +26,13 @@ class AuthStateMain extends AuthState {
 class AuthStateLoggingIn extends AuthState {
   final CurrentLoginPage currentLoginPage;
   final bool isFieldValid;
+  final Color textFieldBorderColor;
   const AuthStateLoggingIn({
+    required this.textFieldBorderColor,
     required this.currentLoginPage,
     required this.isFieldValid,
   });
   @override
-  List<Object?> get props => [currentLoginPage, isFieldValid];
+  List<Object?> get props =>
+      [currentLoginPage, isFieldValid, textFieldBorderColor];
 }

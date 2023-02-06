@@ -16,7 +16,9 @@ class AuthEventSeekMain extends AuthEvent {
 class AuthEventSeekLogin extends AuthEvent {
   final CurrentLoginPage currentLoginPage;
   final bool isFieldValid;
+  final Color textFieldBorderColor;
   AuthEventSeekLogin({
+    required this.textFieldBorderColor,
     required this.currentLoginPage,
     required this.isFieldValid,
   });
