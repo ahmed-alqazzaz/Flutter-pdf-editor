@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pdf_editor/auth/bloc/auth_event.dart';
 
 import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 import 'package:pdf_editor/auth/generics/views/generic_type_email_view.dart';
+
+import '../../bloc/auth_bloc.dart';
 
 class LoginTypeEmailView extends StatelessWidget {
   const LoginTypeEmailView({super.key});
@@ -11,7 +15,14 @@ class LoginTypeEmailView extends StatelessWidget {
     return GenericTypeEmailView(
       authType: AuthType.login,
       onNext: () {
-        print("hhhh");
+        context.read<AuthBloc>().add(
+              AuthEventTypePassword(
+                isTextObscure: false,
+                textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
+                authType: AuthType.login,
+                isFieldValid: false,
+              ),
+            );
       },
     );
   }

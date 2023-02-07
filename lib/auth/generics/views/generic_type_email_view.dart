@@ -5,35 +5,41 @@ import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
-import '../../views/main_auth/enums/button.dart';
+import '../buttons/enums/button.dart';
 import '../buttons/generic_button.dart';
 import '../buttons/generic_child.dart';
 
 typedef OnNext = void Function();
 
 class GenericTypeEmailView extends StatefulWidget {
-  final OnNext onNext;
-  final AuthType authType;
-
   const GenericTypeEmailView(
       {super.key, required this.authType, required this.onNext});
+
+  final AuthType authType;
+  final OnNext onNext;
 
   @override
   State<GenericTypeEmailView> createState() => _GenericTypeEmailViewState();
 }
 
 class _GenericTypeEmailViewState extends State<GenericTypeEmailView> {
-  AuthBloc? authBloc;
-  bool _isEmailValid = false;
-  Color _textFieldBorderColor = const Color.fromRGBO(186, 186, 186, 100);
-
+  late AuthBloc authBloc;
   late final String headerText;
+
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
+  late bool _isEmailValid;
+
+  late Color _textFieldBorderColor;
 
   @override
   void didChangeDependencies() {
     authBloc = context.read<AuthBloc>();
+    final state = authBloc.state;
+    if (state is AuthStateTypingEmail) {
+      _isEmailValid = state.isFieldValid;
+      _textFieldBorderColor = state.textFieldBorderColor;
+    }
     super.didChangeDependencies();
   }
 
@@ -45,6 +51,15 @@ class _GenericTypeEmailViewState extends State<GenericTypeEmailView> {
 
   @override
   void initState() {
+    // when directly making the textfield auto focus, overflow error occurs
+    // this error occurs because the keyboard will be displayed in the previous page during the navigation
+    // the following ensures that the transition is over and the authbloc is defined then enables autofocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 300)).then((value) {
+        _focusNode.requestFocus();
+      });
+    });
+
     if (widget.authType == AuthType.register) {
       headerText = 'Create account';
     } else {
@@ -60,45 +75,33 @@ class _GenericTypeEmailViewState extends State<GenericTypeEmailView> {
               r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
           .hasMatch(text);
 
-      try {
-        if (text.isNotEmpty && _isEmailValid == false) {
-          authBloc?.add(
-            AuthEventTypeEmail(
-              textFieldBorderColor: const Color.fromARGB(255, 31, 94, 203),
-              authType: widget.authType,
-              isFieldValid: _isEmailValid,
-            ),
-          );
-        } else if (text.isEmpty && _isEmailValid == false) {
-          authBloc?.add(
-            AuthEventTypeEmail(
-              textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
-              authType: widget.authType,
-              isFieldValid: _isEmailValid,
-            ),
-          );
-        } else if (text.isNotEmpty && _isEmailValid == true) {
-          authBloc?.add(
-            AuthEventTypeEmail(
-              textFieldBorderColor: Colors.green,
-              authType: widget.authType,
-              isFieldValid: _isEmailValid,
-            ),
-          );
-        }
-      } catch (e) {
-        print(e);
+      if (text.isNotEmpty && _isEmailValid == false) {
+        authBloc.add(
+          AuthEventTypeEmail(
+            textFieldBorderColor: Colors.deepPurple,
+            authType: widget.authType,
+            isFieldValid: _isEmailValid,
+          ),
+        );
+      } else if (text.isEmpty && _isEmailValid == false) {
+        authBloc.add(
+          AuthEventTypeEmail(
+            textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
+            authType: widget.authType,
+            isFieldValid: _isEmailValid,
+          ),
+        );
+      } else if (text.isNotEmpty && _isEmailValid == true) {
+        authBloc.add(
+          AuthEventTypeEmail(
+            textFieldBorderColor: Colors.green,
+            authType: widget.authType,
+            isFieldValid: _isEmailValid,
+          ),
+        );
       }
     });
 
-    // when directly making the textfield auto focus, overflow error occurs
-    // this errors occurs because the keyboard will be displayed in the previous page during th navigation
-    // the following ensures that the transition is over then enables autofocus
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 300)).then((value) {
-        _focusNode.requestFocus();
-      });
-    });
     super.initState();
   }
 

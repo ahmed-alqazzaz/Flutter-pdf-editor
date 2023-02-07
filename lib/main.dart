@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
 import 'package:pdf_editor/auth/views/login/login_type_email_view.dart';
-import 'package:pdf_editor/auth/generics/buttons/generic_button.dart';
-import 'package:pdf_editor/auth/generics/buttons/generic_child.dart';
-import 'package:pdf_editor/auth/views/main_auth/enums/button.dart';
 
 import 'package:pdf_editor/auth/views/main_auth/main_auth_view.dart';
 
 import 'auth/bloc/auth_bloc.dart';
 import 'auth/bloc/auth_state.dart';
-import 'auth/views/register/register_type_email_view.dart';
+import 'auth/views/login/login_type_password_view.dart';
 
 void main() {
   runApp(const PDFEditor());
@@ -34,7 +31,8 @@ class _PdfEditorState extends State<PDFEditor> {
         navigatorKey: _navigatorKey,
         routes: {
           "/auth/main_auth/": (context) => const MainAuthView(),
-          '/auth/login/email/': (context) => const RegisterTypeEmailView()
+          '/auth/login/password/': (context) => const GenericTypePasswordView(),
+          '/auth/login/email/': (context) => const LoginTypeEmailView()
         },
         debugShowCheckedModeBanner: false,
         home: const PageNavigator(),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pdf_editor/auth/views/main_auth/enums/button.dart';
+import 'package:pdf_editor/auth/generics/buttons/enums/button.dart';
 
 class GenericChild extends StatelessWidget {
   const GenericChild({
@@ -89,6 +89,10 @@ class GenericChild extends StatelessWidget {
         case Button.createAccount:
           text = "Create account";
           textColor = Colors.black;
+          break;
+        case Button.register:
+          text = "Register";
+          textColor = Colors.white;
           break;
         default:
           text = "Failed";

@@ -39,3 +39,28 @@ class AuthStateTypingEmail extends AuthState {
   @override
   List<Object?> get props => [authType, isFieldValid, textFieldBorderColor];
 }
+
+class AuthStateTypingPassword extends AuthState {
+  const AuthStateTypingPassword({
+    required this.isTextObscure,
+    required this.textFieldBorderColor,
+    required this.authType,
+    required this.isFieldValid,
+    required this.shouldVisibilityIconShimmer,
+  });
+
+  final AuthType authType;
+  final bool isFieldValid;
+  final Color textFieldBorderColor;
+  final bool isTextObscure;
+  final bool shouldVisibilityIconShimmer;
+
+  @override
+  List<Object?> get props => [
+        authType,
+        isFieldValid,
+        textFieldBorderColor,
+        isTextObscure,
+        shouldVisibilityIconShimmer,
+      ];
+}

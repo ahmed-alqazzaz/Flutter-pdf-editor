@@ -25,3 +25,18 @@ class AuthEventTypeEmail extends AuthEvent {
   final bool isFieldValid;
   final Color textFieldBorderColor;
 }
+
+class AuthEventTypePassword extends AuthEvent {
+  AuthEventTypePassword({
+    required this.isTextObscure,
+    required this.textFieldBorderColor,
+    required this.authType,
+    required this.isFieldValid,
+    this.shouldVisibilityIconShimmer = false,
+  });
+  final bool isTextObscure;
+  final AuthType authType;
+  final bool isFieldValid;
+  final Color textFieldBorderColor;
+  final bool shouldVisibilityIconShimmer;
+}

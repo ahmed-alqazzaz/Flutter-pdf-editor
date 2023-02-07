@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
+import 'package:pdf_editor/auth/services/auth_service.dart';
 
 import 'package:pdf_editor/auth/services/firebase_auth_provider.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
@@ -10,7 +11,7 @@ import '../../bloc/auth_state.dart';
 
 import '../../generics/buttons/generic_button.dart';
 import '../../generics/buttons/generic_child.dart';
-import 'enums/button.dart';
+import '../../generics/buttons/enums/button.dart';
 
 class MainAuthView extends StatefulWidget {
   const MainAuthView({super.key});

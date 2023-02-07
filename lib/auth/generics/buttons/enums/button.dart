@@ -6,4 +6,5 @@ enum Button {
   createAccount,
   nextEnabled,
   nextDisabled,
+  register
 }
