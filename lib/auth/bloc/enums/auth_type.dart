@@ -1,4 +1,4 @@
 enum AuthType {
-  login,
   register,
+  login,
 }

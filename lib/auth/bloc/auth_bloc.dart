@@ -31,8 +31,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         });
 
         emit(AuthStateTypingEmail(
-          textFieldBorderColor: event.textFieldBorderColor,
           authType: event.authType,
+          textFieldBorderColor: event.textFieldBorderColor,
+          authPage: event.authPage,
           isFieldValid: event.isFieldValid,
         ));
       },
@@ -49,10 +50,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         });
 
         emit(AuthStateTypingPassword(
+          authType: event.authType,
           shouldVisibilityIconShimmer: event.shouldVisibilityIconShimmer,
           isTextObscure: event.isTextObscure,
           textFieldBorderColor: event.textFieldBorderColor,
-          authType: event.authType,
+          authPage: event.authPage,
           isFieldValid: event.isFieldValid,
         ));
       },

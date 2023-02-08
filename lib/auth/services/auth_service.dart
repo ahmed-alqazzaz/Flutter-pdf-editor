@@ -2,15 +2,22 @@ import 'package:pdf_editor/auth/services/firebase_auth_provider.dart';
 
 class AuthServices {
   final _provider = FirebaseAuthProvider();
+
   static EmailAndPasswordAuthservice withEmailAndPassword() =>
       EmailAndPasswordAuthservice();
+
   static GoogleAuthservice withGoogle() => GoogleAuthservice();
+
   static FacebookAuthservice withFacebook() => FacebookAuthservice();
+
   static AppleAuthservice withApple() => AppleAuthservice();
+
   static AnonymousAuthservice withAnonymous() => AnonymousAuthservice();
 
   get currentUser => _provider.currentUser;
+
   Future<void> initialize() async => await _provider.initialize();
+
   Future<void> signOut() async => await _provider.signOut();
 }
 

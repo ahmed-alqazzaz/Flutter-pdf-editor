@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pdf_editor/auth/bloc/enums/auth_page.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 import 'package:pdf_editor/auth/services/auth_service.dart';
 
@@ -114,9 +115,10 @@ class _MainAuthViewState extends State<MainAuthView> {
                     onPressed: () async {
                       context.read<AuthBloc>().add(
                             AuthEventTypeEmail(
+                              authType: AuthType.login,
                               textFieldBorderColor:
                                   const Color.fromRGBO(186, 186, 186, 100),
-                              authType: AuthType.login,
+                              authPage: AuthPage.onTypingEmailPage,
                               isFieldValid: false,
                             ),
                           );
