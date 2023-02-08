@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_page.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
+import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_auth_page_header.dart';
+import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_textfield_header.dart';
 
 import 'package:pdf_editor/auth/generics/views/type_email_widgets/proceed_button.dart';
 import 'package:pdf_editor/auth/generics/views/type_password_widgets/proceed_button.dart';
@@ -25,7 +27,6 @@ class GenericAuthView extends StatefulWidget {
 
   final AuthPage authPage;
   final AuthType authType;
-
   final OnProceed onProceed;
 
   @override
@@ -180,81 +181,31 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                 body: Column(
                   children: [
                     const SizedBox(height: 30),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          alignment: Alignment.bottomLeft,
-                          width: constraints.maxWidth * 0.2,
-                          child: TextButton(
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                              ),
-                            ),
-                            onPressed: () {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                _focusNode.unfocus();
-                              });
-                              // TODO: consider increasing the duration of the navigator animation instead of waiting
-                              //wait for keyboard to go down
-                              Future.delayed(const Duration(milliseconds: 200))
-                                  .then(
-                                (value) {
-                                  context.read<AuthBloc>().add(
-                                      const AuthEventSeekMain(
-                                          shouldSkipButtonGlow: false));
-                                },
-                              );
-                            },
-                            child: const Icon(
-                              Icons.arrow_back_outlined,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          alignment: Alignment.bottomCenter,
-                          width: constraints.maxWidth * 0.6,
-                          child: Text(
-                            widget.authType == AuthType.login
-                                ? "Log in"
-                                : "Create Account",
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: constraints.maxWidth * 0.2,
-                        )
-                      ],
+                    GenericAuthPageHeader(
+                      onBackButtonPressed: () {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _focusNode.unfocus();
+                        });
+                        // TODO: consider increasing the duration of the navigator animation instead of waiting
+                        //wait for keyboard to go down
+                        Future.delayed(const Duration(milliseconds: 200)).then(
+                          (value) {
+                            context.read<AuthBloc>().add(
+                                const AuthEventSeekMain(
+                                    shouldSkipButtonGlow: false));
+                          },
+                        );
+                      },
+                      authType: widget.authType,
+                      constraints: constraints,
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(
                           horizontal: constraints.maxWidth * 0.04),
                       child: Column(children: [
                         const SizedBox(height: 50),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              state is AuthStateTypingEmail
-                                  ? "Enter your email"
-                                  : "Now your email",
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
+                        GenericTextFieldHeader(
+                            state: state as AuthStateTypingEmailOrPassword),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           child: TextField(

@@ -99,14 +99,121 @@ class GenericChild extends StatelessWidget {
           textColor = Colors.black;
       }
       return Center(
-          child: Text(
-        text,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 17,
-          fontWeight: FontWeight.bold,
+        child: Text(
+          text,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ));
+      );
     }
+  }
+}
+
+@immutable
+class GenericTextButtonChild extends StatelessWidget {
+  const GenericTextButtonChild({
+    super.key,
+    required this.widget,
+  });
+
+  GenericTextButtonChild._socialMediaPlatform({
+    required ImageProvider<Object> image,
+    required String text,
+  }) : widget = GenericTextButtonChild(
+          widget: LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  Container(
+                    alignment: Alignment.center,
+                    width: constraints.maxWidth * 0.15,
+                    child: Image(
+                      image: image,
+                      height: 30,
+                    ),
+                  ),
+                  Container(
+                    width: constraints.maxWidth * 0.7,
+                    alignment: Alignment.center,
+                    child: Text(
+                      text,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: constraints.maxWidth * 0.15),
+                ],
+              );
+            },
+          ),
+        );
+
+  GenericTextButtonChild._toBeNamed(
+      {required String text, required Color textColor})
+      : widget = Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+
+  factory GenericTextButtonChild.apple() {
+    const image = AssetImage("assets/apple_logo.png");
+    const text = "Continue With apple";
+    return GenericTextButtonChild._socialMediaPlatform(
+      image: image,
+      text: text,
+    );
+  }
+
+  factory GenericTextButtonChild.facebook() {
+    const image = AssetImage("assets/facebook_logo.png");
+    const text = "Continue With Facebook";
+    return GenericTextButtonChild._socialMediaPlatform(
+      image: image,
+      text: text,
+    );
+  }
+
+  factory GenericTextButtonChild.google() {
+    const image = AssetImage("assets/google_logo.png");
+    const text = "Continue With Google";
+    return GenericTextButtonChild._socialMediaPlatform(
+      image: image,
+      text: text,
+    );
+  }
+  factory GenericTextButtonChild.login() {
+    const text = "Log in";
+    const textColor = Colors.white;
+    return GenericTextButtonChild._toBeNamed(
+      text: text,
+      textColor: textColor,
+    );
+  }
+  factory GenericTextButtonChild.register() {
+    const text = "Register";
+    const textColor = Colors.white;
+    return GenericTextButtonChild._toBeNamed(
+      text: text,
+      textColor: textColor,
+    );
+  }
+
+  final Widget widget;
+
+  @override
+  Widget build(BuildContext context) {
+    return widget;
   }
 }
