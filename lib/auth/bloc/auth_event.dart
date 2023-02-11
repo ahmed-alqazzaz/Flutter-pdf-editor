@@ -15,6 +15,7 @@ class AuthEventSeekMain extends AuthEvent {
   final bool shouldSkipButtonGlow;
 }
 
+// Type email and password events
 class AuthEventTypeEmailOrPassword extends AuthEvent {
   AuthEventTypeEmailOrPassword({
     required this.authType,
@@ -50,4 +51,33 @@ class AuthEventTypePassword extends AuthEventTypeEmailOrPassword {
 
   final bool isTextObscure;
   final bool shouldVisibilityIconShimmer;
+}
+
+// Registeration and logging events
+
+class AuthStateLoggingOrRegistering extends AuthEvent {
+  const AuthStateLoggingOrRegistering({
+    required this.email,
+    required this.password,
+    required this.isLoading,
+  });
+  final String email;
+  final String password;
+  final bool isLoading;
+}
+
+class AuthStateLoggingIn extends AuthStateLoggingOrRegistering {
+  const AuthStateLoggingIn({
+    required super.email,
+    required super.password,
+    required super.isLoading,
+  });
+}
+
+class AuthStateRegistering extends AuthStateLoggingOrRegistering {
+  const AuthStateRegistering({
+    required super.email,
+    required super.password,
+    required super.isLoading,
+  });
 }
