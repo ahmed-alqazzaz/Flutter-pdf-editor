@@ -11,7 +11,7 @@ abstract class AuthState extends Equatable {
   const AuthState();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class AuthStateInitial extends AuthState {
@@ -24,9 +24,10 @@ class AuthStateMain extends AuthState {
   final bool shouldSkipButtonGlow;
 
   @override
-  List<Object?> get props => [shouldSkipButtonGlow];
+  List<Object> get props => [shouldSkipButtonGlow];
 }
 
+// Typing email and password states
 class AuthStateTypingEmailOrPassword extends AuthState {
   const AuthStateTypingEmailOrPassword({
     required this.authType,
@@ -42,7 +43,7 @@ class AuthStateTypingEmailOrPassword extends AuthState {
   final Color textFieldBorderColor;
 
   @override
-  List<Object?> get props => [
+  List<Object> get props => [
         authType,
         authPage,
         isFieldValid,
@@ -73,7 +74,7 @@ class AuthStateTypingPassword extends AuthStateTypingEmailOrPassword {
   final bool shouldVisibilityIconShimmer;
 
   @override
-  List<Object?> get props => [
+  List<Object> get props => [
         authType,
         authPage,
         isFieldValid,
@@ -81,4 +82,31 @@ class AuthStateTypingPassword extends AuthStateTypingEmailOrPassword {
         isTextObscure,
         shouldVisibilityIconShimmer,
       ];
+}
+
+// Registeration and  logging  states
+class AuthStateLoggingOrRegistering extends AuthState {
+  const AuthStateLoggingOrRegistering(
+      {required this.email, required this.password, required this.isLoading});
+  final String email;
+  final String password;
+  final bool isLoading;
+  @override
+  List<Object> get props => [email, password, isLoading];
+}
+
+class AuthStateLoggingIn extends AuthStateLoggingOrRegistering {
+  const AuthStateLoggingIn({
+    required super.email,
+    required super.password,
+    required super.isLoading,
+  });
+}
+
+class AuthStateRegistering extends AuthStateLoggingOrRegistering {
+  const AuthStateRegistering({
+    required super.email,
+    required super.password,
+    required super.isLoading,
+  });
 }
