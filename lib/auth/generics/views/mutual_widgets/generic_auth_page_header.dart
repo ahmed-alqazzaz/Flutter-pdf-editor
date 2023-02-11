@@ -1,4 +1,3 @@
-// consider renaming this shit
 import 'package:flutter/material.dart';
 
 import '../../../bloc/enums/auth_type.dart';

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:pdf_editor/auth/bloc/auth_state.dart';
 
 class GenericTextFieldHeader extends StatelessWidget {
-  GenericTextFieldHeader({super.key, required this.state});
+  const GenericTextFieldHeader({super.key, required this.state});
 
-  AuthStateTypingEmailOrPassword state;
+  final AuthStateTypingEmailOrPassword state;
   @override
   Widget build(BuildContext context) {
     return Row(

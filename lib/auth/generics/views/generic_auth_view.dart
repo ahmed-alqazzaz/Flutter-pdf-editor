@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_page.dart';
-import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
+
 import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_auth_page_header.dart';
 import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_textfield_header.dart';
 
@@ -14,20 +14,19 @@ import 'package:shimmer/shimmer.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
+import '../../bloc/enums/auth_type.dart';
 
-typedef OnProceed = void Function();
+typedef OnPressed = void Function();
 
 class GenericAuthView extends StatefulWidget {
   const GenericAuthView({
     super.key,
-    required this.authPage,
     required this.onProceed,
-    required this.authType,
+    required this.onBack,
   });
 
-  final AuthPage authPage;
-  final AuthType authType;
-  final OnProceed onProceed;
+  final OnPressed onBack;
+  final OnPressed onProceed;
 
   @override
   State<GenericAuthView> createState() => _GenericTypeEmailViewState();
@@ -86,7 +85,7 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
       () {
         //check if field is valid
         String text = _controller.text.toLowerCase();
-
+        final state = authBloc.state as AuthStateTypingEmailOrPassword;
         if (authBloc.state is AuthStateTypingEmail) {
           _isFieldValid = RegExp(
                   r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
@@ -101,9 +100,9 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                   : _isFieldValid
                       ? Colors.green
                       : Colors.deepPurple,
-              authPage: widget.authPage,
+              authPage: state.authPage,
               isFieldValid: _isFieldValid,
-              authType: widget.authType,
+              authType: state.authType,
             ),
           );
         } else if (authBloc.state is AuthStateTypingPassword) {
@@ -118,9 +117,9 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                       : Colors.deepPurple,
               shouldVisibilityIconShimmer: _shouldVisibilityIconShimmer,
               isTextObscure: _isTextObscure,
-              authPage: widget.authPage,
+              authPage: state.authPage,
               isFieldValid: _isFieldValid,
-              authType: widget.authType,
+              authType: state.authType,
             ),
           );
         }
@@ -130,21 +129,121 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
     super.initState();
   }
 
+  Widget textField(AuthStateTypingEmailOrPassword state) {
+    return TextField(
+      focusNode: _focusNode,
+      controller: _controller,
+      textAlignVertical: const TextAlignVertical(y: 1),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 7),
+        suffixIcon: suffixIcon(state),
+        prefixIcon: prefixIcon(state),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: _textFieldBorderColor,
+            width: 2,
+          ),
+        ),
+      ),
+      keyboardType: state is AuthStateTypingPassword
+          ? state.isTextObscure == false
+              ? TextInputType.visiblePassword
+              : null
+          : TextInputType.emailAddress,
+      autocorrect: true,
+      autofocus: false,
+      obscureText:
+          state is AuthStateTypingPassword ? state.isTextObscure : false,
+    );
+  }
+
+  Widget? suffixIcon(AuthStateTypingEmailOrPassword state) {
+    // in case state is typing email don't display suffix icon
+    if (state is AuthStateTypingEmail) {
+      return null;
+    }
+    return Shimmer.fromColors(
+      enabled: _shouldVisibilityIconShimmer,
+      baseColor: Colors.black,
+
+      // in case there is residual shimmer left when shimmer is disabled, turn it's color to black
+      highlightColor:
+          _shouldVisibilityIconShimmer ? Colors.grey[100]! : Colors.black,
+      child: GestureDetector(
+        onTapUp: (details) {
+          //cancel the disabling of the shimmer if exists
+          _timer?.cancel();
+          context.read<AuthBloc>().add(
+                AuthEventTypePassword(
+                  shouldVisibilityIconShimmer: true,
+                  isTextObscure: !_isTextObscure,
+                  textFieldBorderColor: _textFieldBorderColor,
+                  authPage: state.authPage,
+                  isFieldValid: _isFieldValid,
+                  authType: state.authType,
+                ),
+              );
+
+          //disable the shimmer after one 3 seconds
+          _timer = Timer(
+            const Duration(milliseconds: 3000),
+            () {
+              context.read<AuthBloc>().add(
+                    AuthEventTypePassword(
+                      shouldVisibilityIconShimmer: false,
+                      isTextObscure: _isTextObscure,
+                      textFieldBorderColor: _textFieldBorderColor,
+                      authPage: state.authPage,
+                      isFieldValid: _isFieldValid,
+                      authType: state.authType,
+                    ),
+                  );
+            },
+          );
+        },
+        child: Container(
+          alignment: const Alignment(1, 0.5),
+          width: 1,
+          child: Icon(
+            size: 20,
+            _isTextObscure
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget? prefixIcon(AuthStateTypingEmailOrPassword state) {
+    return Container(
+      alignment: const Alignment(-1, 0.5),
+      width: 1,
+      child: Icon(
+        size: 20,
+        color: Colors.black,
+        state is AuthStateTypingEmail
+            ? Icons.email_outlined
+            : Icons.lock_outline_sharp,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listenWhen: (previousState, currentState) {
         if (currentState is AuthStateTypingEmailOrPassword &&
-            currentState.authPage == widget.authPage &&
+            currentState.authPage == currentState.authPage &&
             previousState is AuthStateTypingEmailOrPassword &&
-            previousState.authPage == widget.authPage) {
+            previousState.authPage == currentState.authPage) {
           // in case the user type a valid email then deletes it
           if (currentState.isFieldValid == false &&
               previousState.isFieldValid == true) {
             setState(() {
               _textFieldBorderColor = Colors.red;
             });
-
             return false;
           }
         }
@@ -152,7 +251,7 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
       },
       listener: (context, state) {
         if (state is AuthStateTypingEmailOrPassword &&
-            state.authPage == widget.authPage) {
+            state.authPage == state.authPage) {
           setState(() {
             _textFieldBorderColor = state.textFieldBorderColor;
             _isFieldValid = state.isFieldValid;
@@ -168,12 +267,14 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
       },
       buildWhen: (previous, currentState) {
         if (currentState is AuthStateTypingEmailOrPassword &&
-            currentState.authPage == widget.authPage) {
+            currentState.authPage == currentState.authPage) {
           return true;
         }
         return false;
       },
       builder: (context, state) {
+        state as AuthStateTypingEmailOrPassword;
+
         return WillPopScope(
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -187,16 +288,15 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                           _focusNode.unfocus();
                         });
                         // TODO: consider increasing the duration of the navigator animation instead of waiting
-                        //wait for keyboard to go down
+
+                        // wait for keyboard to go down
                         Future.delayed(const Duration(milliseconds: 200)).then(
                           (value) {
-                            context.read<AuthBloc>().add(
-                                const AuthEventSeekMain(
-                                    shouldSkipButtonGlow: false));
+                            widget.onBack();
                           },
                         );
                       },
-                      authType: widget.authType,
+                      authType: state.authType,
                       constraints: constraints,
                     ),
                     Padding(
@@ -204,105 +304,10 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                           horizontal: constraints.maxWidth * 0.04),
                       child: Column(children: [
                         const SizedBox(height: 50),
-                        GenericTextFieldHeader(
-                            state: state as AuthStateTypingEmailOrPassword),
+                        GenericTextFieldHeader(state: state),
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: TextField(
-                            focusNode: _focusNode,
-                            controller: _controller,
-                            textAlignVertical: const TextAlignVertical(y: 1),
-                            decoration: InputDecoration(
-                              contentPadding:
-                                  const EdgeInsets.symmetric(vertical: 7),
-                              // in case state is typing email don't display suffix icon
-                              suffixIcon: state is AuthStateTypingEmail
-                                  ? null
-                                  : Shimmer.fromColors(
-                                      enabled: _shouldVisibilityIconShimmer,
-                                      period:
-                                          const Duration(milliseconds: 1500),
-                                      baseColor: Colors.black,
-                                      // in case there is residual shimmer left when shimmer is disabled, turn it's color to black
-                                      highlightColor:
-                                          _shouldVisibilityIconShimmer
-                                              ? Colors.grey[100]!
-                                              : Colors.black,
-                                      child: GestureDetector(
-                                        onTapUp: (details) {
-                                          //cancel the shimmer disabling if exists
-                                          _timer?.cancel();
-                                          context.read<AuthBloc>().add(
-                                                AuthEventTypePassword(
-                                                  shouldVisibilityIconShimmer:
-                                                      true,
-                                                  isTextObscure:
-                                                      !_isTextObscure,
-                                                  textFieldBorderColor:
-                                                      _textFieldBorderColor,
-                                                  authPage: widget.authPage,
-                                                  isFieldValid: _isFieldValid,
-                                                  authType: widget.authType,
-                                                ),
-                                              );
-
-                                          //disable the shimmer after one 4.5 seconds
-                                          _timer = Timer(
-                                            const Duration(milliseconds: 4500),
-                                            () {
-                                              context.read<AuthBloc>().add(
-                                                    AuthEventTypePassword(
-                                                      shouldVisibilityIconShimmer:
-                                                          false,
-                                                      isTextObscure:
-                                                          !_isTextObscure,
-                                                      textFieldBorderColor:
-                                                          _textFieldBorderColor,
-                                                      authPage: widget.authPage,
-                                                      isFieldValid:
-                                                          _isFieldValid,
-                                                      authType: widget.authType,
-                                                    ),
-                                                  );
-                                            },
-                                          );
-                                        },
-                                        child: Container(
-                                          alignment: const Alignment(1, 0.5),
-                                          width: 1,
-                                          child: Icon(
-                                            size: 20,
-                                            _isTextObscure
-                                                ? Icons.visibility_off_outlined
-                                                : Icons.visibility_outlined,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                              prefixIcon: Container(
-                                alignment: const Alignment(-1, 0.5),
-                                width: 1,
-                                child: Icon(
-                                  size: 20,
-                                  color: Colors.black,
-                                  state is AuthStateTypingEmail
-                                      ? Icons.email_outlined
-                                      : Icons.lock_outline_sharp,
-                                ),
-                              ),
-                              focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: _textFieldBorderColor,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            autocorrect: true,
-                            autofocus: false,
-                          ),
-                        ),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: textField(state)),
                         const SizedBox(height: 20),
                         if (state is AuthStateTypingEmail) ...[
                           TypeEmailProceedButton(
@@ -313,6 +318,7 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                           TypePasswordProceedButton(
                             onProceed: widget.onProceed,
                             isFieldValid: _isFieldValid,
+                            authType: state.authType,
                           )
                         ]
                       ]),
@@ -328,9 +334,7 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
             });
             Future.delayed(const Duration(milliseconds: 100)).then(
               (value) {
-                context
-                    .read<AuthBloc>()
-                    .add(const AuthEventSeekMain(shouldSkipButtonGlow: false));
+                widget.onBack();
               },
             );
             return false;

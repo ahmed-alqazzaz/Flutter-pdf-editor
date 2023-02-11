@@ -9,7 +9,7 @@ class TypeEmailProceedButton extends StatelessWidget {
   const TypeEmailProceedButton(
       {super.key, required this.onProceed, required this.isFieldValid});
 
-  final OnProceed onProceed;
+  final OnPressed onProceed;
   final bool isFieldValid;
 
   @override

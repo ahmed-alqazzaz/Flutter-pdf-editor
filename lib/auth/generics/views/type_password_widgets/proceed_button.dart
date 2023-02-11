@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 
 import '../../buttons/enums/button.dart';
 import '../../buttons/generic_button.dart';
@@ -12,13 +11,14 @@ class TypePasswordProceedButton extends StatelessWidget {
     super.key,
     required this.onProceed,
     required this.isFieldValid,
+    required this.authType,
   });
 
-  final OnProceed onProceed;
+  final OnPressed onProceed;
   final bool isFieldValid;
+  final AuthType authType;
   @override
   Widget build(BuildContext context) {
-    print(isFieldValid);
     return GenericButton(
       backgroundColor: isFieldValid
           ? MaterialStateProperty.all(
@@ -26,10 +26,9 @@ class TypePasswordProceedButton extends StatelessWidget {
             )
           : MaterialStateProperty.all(const Color.fromRGBO(186, 186, 186, 1)),
       onPressed: isFieldValid ? onProceed : null,
-      child: const GenericChild(
-        button: Button.login,
+      child: GenericChild(
+        button: authType == AuthType.login ? Button.login : Button.register,
       ),
     );
-    ;
   }
 }
