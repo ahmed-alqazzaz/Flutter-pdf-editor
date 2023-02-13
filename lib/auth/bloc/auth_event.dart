@@ -55,8 +55,8 @@ class AuthEventTypePassword extends AuthEventTypeEmailOrPassword {
 
 // Registeration and logging events
 
-class AuthStateLoggingOrRegistering extends AuthEvent {
-  const AuthStateLoggingOrRegistering({
+class AuthEventLogOrRegister extends AuthEvent {
+  const AuthEventLogOrRegister({
     required this.email,
     required this.password,
     required this.isLoading,
@@ -66,16 +66,16 @@ class AuthStateLoggingOrRegistering extends AuthEvent {
   final bool isLoading;
 }
 
-class AuthStateLoggingIn extends AuthStateLoggingOrRegistering {
-  const AuthStateLoggingIn({
+class AuthEventLogIn extends AuthEventLogOrRegister {
+  const AuthEventLogIn({
     required super.email,
     required super.password,
     required super.isLoading,
   });
 }
 
-class AuthStateRegistering extends AuthStateLoggingOrRegistering {
-  const AuthStateRegistering({
+class AuthEventRegister extends AuthEventLogOrRegister {
+  const AuthEventRegister({
     required super.email,
     required super.password,
     required super.isLoading,
