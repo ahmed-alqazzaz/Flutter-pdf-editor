@@ -19,9 +19,9 @@ class AuthEventSeekMain extends AuthEvent {
 class AuthEventTypeEmailOrPassword extends AuthEvent {
   AuthEventTypeEmailOrPassword({
     required this.authType,
-    required this.textFieldBorderColor,
     required this.authPage,
-    required this.isFieldValid,
+    this.textFieldBorderColor = const Color.fromRGBO(186, 186, 186, 100),
+    this.isFieldValid = false,
   });
 
   final AuthType authType;
@@ -33,22 +33,24 @@ class AuthEventTypeEmailOrPassword extends AuthEvent {
 class AuthEventTypeEmail extends AuthEventTypeEmailOrPassword {
   AuthEventTypeEmail({
     required super.authType,
-    required super.textFieldBorderColor,
     required super.authPage,
-    required super.isFieldValid,
+    super.textFieldBorderColor,
+    super.isFieldValid,
   });
 }
 
 class AuthEventTypePassword extends AuthEventTypeEmailOrPassword {
   AuthEventTypePassword({
+    required this.email,
     required super.authType,
-    required this.isTextObscure,
-    required super.textFieldBorderColor,
     required super.authPage,
-    required super.isFieldValid,
+    super.isFieldValid,
+    super.textFieldBorderColor,
+    this.isTextObscure = true,
     this.shouldVisibilityIconShimmer = false,
   });
 
+  final String email;
   final bool isTextObscure;
   final bool shouldVisibilityIconShimmer;
 }
@@ -59,18 +61,15 @@ class AuthEventLogOrRegister extends AuthEvent {
   const AuthEventLogOrRegister({
     required this.email,
     required this.password,
-    required this.isLoading,
   });
   final String email;
   final String password;
-  final bool isLoading;
 }
 
 class AuthEventLogIn extends AuthEventLogOrRegister {
   const AuthEventLogIn({
     required super.email,
     required super.password,
-    required super.isLoading,
   });
 }
 
@@ -78,6 +77,5 @@ class AuthEventRegister extends AuthEventLogOrRegister {
   const AuthEventRegister({
     required super.email,
     required super.password,
-    required super.isLoading,
   });
 }

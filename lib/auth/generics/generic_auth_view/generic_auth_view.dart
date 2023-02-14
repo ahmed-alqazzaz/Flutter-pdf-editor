@@ -11,6 +11,8 @@ import 'package:pdf_editor/auth/generics/generic_auth_view/widget/mutual_widgets
 import 'package:pdf_editor/auth/generics/generic_auth_view/widget/type_email_widgets/proceed_button.dart';
 import 'package:pdf_editor/auth/generics/generic_auth_view/widget/type_password_widgets/proceed_button.dart';
 import 'package:pdf_editor/auth/generics/generic_auth_view/widget/type_password_widgets/suffix_icon.dart';
+import 'package:pdf_editor/helpers/error_messages/show_error_message.dart';
+import 'package:pdf_editor/helpers/loading/loading_screen.dart';
 
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
@@ -148,13 +150,28 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                 textFieldBorderColor: Colors.red,
               ));
             }
-
-            return false;
           }
         }
         return true;
       },
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is AuthStateTypingPassword) {
+          if (state.isLoading == true) {
+            LoadingScreen().show(context: context, text: "Signing in...");
+          } else {
+            LoadingScreen().hide();
+          }
+
+          if (state.exception != null) {
+            // TODO: custom error messages
+            showErrorMessage(
+              context: context,
+              text: "something went wrong",
+              duration: const Duration(seconds: 3),
+            );
+          }
+        }
+      },
       buildWhen: (previous, currentState) {
         if (currentState is AuthStateTypingEmailOrPassword &&
             currentState.authPage == currentState.authPage) {
@@ -209,6 +226,7 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                             ),
                           ] else if (state is AuthStateTypingPassword) ...[
                             TypePasswordProceedButtonn(
+                              focusNode: _focusNode,
                               controller: _controller,
                             )
                           ]

@@ -11,7 +11,7 @@ abstract class AuthState extends Equatable {
   const AuthState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class AuthStateInitial extends AuthState {
@@ -31,9 +31,9 @@ class AuthStateMain extends AuthState {
 class AuthStateTypingEmailOrPassword extends AuthState {
   const AuthStateTypingEmailOrPassword({
     required this.authType,
-    required this.textFieldBorderColor,
     required this.authPage,
-    required this.isFieldValid,
+    this.textFieldBorderColor = const Color.fromRGBO(186, 186, 186, 100),
+    this.isFieldValid = false,
   });
 
   final AuthPage authPage;
@@ -43,7 +43,7 @@ class AuthStateTypingEmailOrPassword extends AuthState {
   final Color textFieldBorderColor;
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         authType,
         authPage,
         isFieldValid,
@@ -54,45 +54,56 @@ class AuthStateTypingEmailOrPassword extends AuthState {
 class AuthStateTypingEmail extends AuthStateTypingEmailOrPassword {
   const AuthStateTypingEmail({
     required super.authType,
-    required super.textFieldBorderColor,
     required super.authPage,
-    required super.isFieldValid,
+    super.textFieldBorderColor,
+    super.isFieldValid,
   });
 }
 
 class AuthStateTypingPassword extends AuthStateTypingEmailOrPassword {
   const AuthStateTypingPassword({
-    required this.isTextObscure,
+    required this.email,
     required super.authType,
-    required super.textFieldBorderColor,
     required super.authPage,
-    required super.isFieldValid,
-    required this.shouldVisibilityIconShimmer,
+    super.isFieldValid,
+    super.textFieldBorderColor,
+    this.isTextObscure = true,
+    this.shouldVisibilityIconShimmer = false,
+    this.isLoading = false,
+    this.exception,
   });
-
+  final String email;
+  final Exception? exception;
+  final bool isLoading;
   final bool isTextObscure;
   final bool shouldVisibilityIconShimmer;
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
+        email,
         authType,
         authPage,
         isFieldValid,
         textFieldBorderColor,
         isTextObscure,
         shouldVisibilityIconShimmer,
+        exception
       ];
 }
 
 // Registeration and  logging  states
 class AuthStateLoggingOrRegistering extends AuthState {
-  const AuthStateLoggingOrRegistering(
-      {required this.email, required this.password, required this.isLoading});
+  const AuthStateLoggingOrRegistering({
+    required this.email,
+    required this.password,
+    required this.isLoading,
+  });
   final String email;
   final String password;
   final bool isLoading;
+
   @override
-  List<Object> get props => [email, password, isLoading];
+  List<Object?> get props => [email, password, isLoading];
 }
 
 class AuthStateLoggingIn extends AuthStateLoggingOrRegistering {

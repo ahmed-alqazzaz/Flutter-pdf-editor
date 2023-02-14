@@ -12,8 +12,13 @@ import '../../../buttons/generic_child.dart';
 import '../../generic_auth_view.dart';
 
 class TypePasswordProceedButtonn extends StatefulWidget {
-  const TypePasswordProceedButtonn({super.key, required this.controller});
+  const TypePasswordProceedButtonn({
+    super.key,
+    required this.controller,
+    required this.focusNode,
+  });
   final TextEditingController controller;
+  final FocusNode focusNode;
   @override
   State<TypePasswordProceedButtonn> createState() =>
       _TypePasswordProceedButtonnState();
@@ -33,18 +38,24 @@ class _TypePasswordProceedButtonnState
 
   void proceed() {
     final password = widget.controller.text;
+    widget.focusNode.unfocus();
     if (state!.authType == AuthType.login) {
       authBloc.add(AuthEventLogIn(
         email: state!.email,
         password: password,
       ));
-    } else {}
+    } else {
+      authBloc.add(AuthEventRegister(
+        email: state!.email,
+        password: password,
+      ));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     state = authBloc.state as AuthStateTypingPassword;
-    print("isfieldvalid :${state!.isFieldValid}");
+
     return GenericButton(
       backgroundColor: state!.isFieldValid
           ? MaterialStateProperty.all(
