@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_auth_page_header.dart';
-import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_prefix_icon.dart';
-import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_text_field.dart';
-import 'package:pdf_editor/auth/generics/views/mutual_widgets/generic_textfield_header.dart';
+import 'package:pdf_editor/auth/generics/generic_auth_view/widget/mutual_widgets/generic_auth_page_header.dart';
+import 'package:pdf_editor/auth/generics/generic_auth_view/widget/mutual_widgets/generic_prefix_icon.dart';
+import 'package:pdf_editor/auth/generics/generic_auth_view/widget/mutual_widgets/generic_text_field.dart';
+import 'package:pdf_editor/auth/generics/generic_auth_view/widget/mutual_widgets/generic_textfield_header.dart';
 
-import 'package:pdf_editor/auth/generics/views/type_email_widgets/proceed_button.dart';
-import 'package:pdf_editor/auth/generics/views/type_password_widgets/proceed_button.dart';
-import 'package:pdf_editor/auth/generics/views/type_password_widgets/suffix_icon.dart';
+import 'package:pdf_editor/auth/generics/generic_auth_view/widget/type_email_widgets/proceed_button.dart';
+import 'package:pdf_editor/auth/generics/generic_auth_view/widget/type_password_widgets/proceed_button.dart';
+import 'package:pdf_editor/auth/generics/generic_auth_view/widget/type_password_widgets/suffix_icon.dart';
 
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
@@ -55,9 +55,10 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
 
   void textFieldListener() {
     //check if field is valid
-    String text = _controller.text.toLowerCase();
+    final String text = _controller.text.toLowerCase();
 
     final state = authBloc.state as AuthStateTypingEmailOrPassword;
+
     if (state is AuthStateTypingEmail) {
       final isFieldValid = RegExp(
               r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
@@ -173,17 +174,7 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
                     const SizedBox(height: 30),
                     GenericAuthPageHeader(
                       onBackButtonPressed: () {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          _focusNode.unfocus();
-                        });
-                        // TODO: consider increasing the duration of the navigator animation instead of waiting
-
-                        // wait for keyboard to go down
-                        Future.delayed(const Duration(milliseconds: 200)).then(
-                          (value) {
-                            widget.onBack();
-                          },
-                        );
+                        widget.onBack();
                       },
                       authType: state.authType,
                       constraints: constraints,
@@ -230,20 +221,14 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
             },
           ),
           onWillPop: () async {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // bring down the keyboard
-              _focusNode.unfocus();
-              // the future reponsible for disabling the shimmer might still be running in the background
-              // this future results in emitting AuthStateTypingPassword
-              // if this state is emitted after the current view is disposed after the back button is clicked, the app will naviagte back to the typing password view
-              // so we should cancel it if it exists
-              timer?.cancel();
-            });
-            Future.delayed(const Duration(milliseconds: 100)).then(
-              (value) {
-                widget.onBack();
-              },
-            );
+            // the future reponsible for disabling the shimmer might still be running in the background
+            // this future results in emitting AuthStateTypingPassword
+            // if this state is emitted after the current view is disposed after the back button is clicked, the app will naviagte back to the typing password view
+            // so we should cancel it if it exists
+            timer?.cancel();
+
+            widget.onBack();
+
             return false;
           },
         );

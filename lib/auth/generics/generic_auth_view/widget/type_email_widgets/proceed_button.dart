@@ -4,11 +4,11 @@ import 'package:pdf_editor/auth/bloc/auth_bloc.dart';
 
 import 'package:pdf_editor/auth/generics/buttons/enums/button.dart';
 
-import '../../../bloc/auth_event.dart';
-import '../../../bloc/auth_state.dart';
-import '../../../bloc/enums/auth_page.dart';
-import '../../buttons/generic_button.dart';
-import '../../buttons/generic_child.dart';
+import '../../../../bloc/auth_event.dart';
+import '../../../../bloc/auth_state.dart';
+import '../../../../bloc/enums/auth_page.dart';
+import '../../../buttons/generic_button.dart';
+import '../../../buttons/generic_child.dart';
 
 class TypeEmailProceedButton extends StatefulWidget {
   const TypeEmailProceedButton({

@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/auth_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../bloc/auth_event.dart';
-import '../../../bloc/auth_state.dart';
+import '../../../../bloc/auth_event.dart';
+import '../../../../bloc/auth_state.dart';
 
 class SuffixIcon extends StatefulWidget {
   const SuffixIcon({super.key, required this.timerStreamController});

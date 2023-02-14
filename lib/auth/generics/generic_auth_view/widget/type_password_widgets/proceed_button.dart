@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/auth_state.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 
-import '../../../bloc/auth_bloc.dart';
-import '../../../bloc/auth_event.dart';
-import '../../../bloc/enums/auth_page.dart';
-import '../../buttons/enums/button.dart';
-import '../../buttons/generic_button.dart';
-import '../../buttons/generic_child.dart';
-import '../generic_auth_view.dart';
+import '../../../../bloc/auth_bloc.dart';
+import '../../../../bloc/auth_event.dart';
+import '../../../../bloc/enums/auth_page.dart';
+import '../../../buttons/enums/button.dart';
+import '../../../buttons/generic_button.dart';
+import '../../../buttons/generic_child.dart';
+import '../../generic_auth_view.dart';
 
 class TypePasswordProceedButtonn extends StatefulWidget {
   const TypePasswordProceedButtonn({super.key, required this.controller});

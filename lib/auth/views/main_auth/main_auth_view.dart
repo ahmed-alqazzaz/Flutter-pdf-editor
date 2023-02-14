@@ -6,8 +6,8 @@ import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 
 import 'package:pdf_editor/auth/auth_service/firebase_auth_provider.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
+import 'package:pdf_editor/helpers/error_messages/show_error_message.dart';
 
-import '../../../helpers/error_messages/show_error_message.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_state.dart';
 
@@ -62,125 +62,126 @@ class _MainAuthViewState extends State<MainAuthView> {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: width * 0.04),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SizedBox(height: height * 0.22),
-            GenericButton(
-              onPressed: () async {
-                await FirebaseAuthProvider().signInWithFacebook();
-              },
-              child: const GenericChild(
-                button: Button.facebook,
-              ),
-            ),
-            GenericButton(
-              onPressed: () async {
-                await FirebaseAuthProvider().signInWithGoogle();
-              },
-              child: const GenericChild(
-                button: Button.google,
-              ),
-            ),
-            GenericButton(
-              onPressed: () {},
-              child: const GenericChild(
-                button: Button.apple,
-              ),
-            ),
-            SizedBox(height: height * 0.04),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Expanded(
-                  child: Divider(
-                    height: 2.0,
-                    color: Color.fromARGB(255, 115, 112, 112),
-                    thickness: 0.8,
-                  ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(height: height * 0.22),
+
+              // Sign in with Facebook button
+              GenericButton(
+                onPressed: () async {
+                  await FirebaseAuthProvider().signInWithFacebook();
+                },
+                child: const GenericChild(
+                  button: Button.facebook,
                 ),
-                SizedBox(width: width * 0.02),
-                const Text(
-                  "or",
+              ),
+
+              // Sign in with Google button
+              GenericButton(
+                onPressed: () async {
+                  await FirebaseAuthProvider().signInWithGoogle();
+                },
+                child: const GenericChild(
+                  button: Button.google,
+                ),
+              ),
+
+              // Sign in with Apple button
+              GenericButton(
+                onPressed: () {},
+                child: const GenericChild(
+                  button: Button.apple,
+                ),
+              ),
+
+              SizedBox(height: height * 0.04),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Expanded(
+                    child: Divider(
+                      height: 2.0,
+                      color: Color.fromARGB(255, 115, 112, 112),
+                      thickness: 0.8,
+                    ),
+                  ),
+                  SizedBox(width: width * 0.02),
+                  const Text(
+                    "or",
+                    style: TextStyle(
+                        color: Color.fromARGB(255, 99, 95, 95),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400),
+                  ),
+                  SizedBox(width: width * 0.02),
+                  const Expanded(
+                    child: Divider(
+                      height: 2.0,
+                      color: Color.fromARGB(255, 126, 122, 122),
+                      thickness: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height * 0.04),
+              GenericButton(
+                backgroundColor: MaterialStateProperty.all(
+                  Colors.deepPurple,
+                ),
+                onPressed: () async {
+                  context.read<AuthBloc>().add(
+                        AuthEventTypeEmail(
+                          authType: AuthType.login,
+                          authPage: AuthPage.onTypingEmailPage,
+                        ),
+                      );
+                },
+                child: const GenericChild(
+                  button: Button.login,
+                ),
+              ),
+              GenericButton(
+                onPressed: () {
+                  context.read<AuthBloc>().add(
+                        AuthEventTypeEmail(
+                          authType: AuthType.register,
+                          authPage: AuthPage.onTypingEmailPage,
+                        ),
+                      );
+                },
+                child: const GenericChild(
+                  button: Button.createAccount,
+                ),
+              ),
+              SizedBox(height: height * 0.13),
+              GestureDetector(
+                onTapDown: (details) {
+                  context
+                      .read<AuthBloc>()
+                      .add(const AuthEventSeekMain(shouldSkipButtonGlow: true));
+                },
+                onTapUp: (details) {
+                  context.read<AuthBloc>().add(
+                      const AuthEventSeekMain(shouldSkipButtonGlow: false));
+                },
+                onTapCancel: () {
+                  context.read<AuthBloc>().add(
+                      const AuthEventSeekMain(shouldSkipButtonGlow: false));
+                },
+                child: Text(
+                  "Skip for now",
                   style: TextStyle(
-                      color: Color.fromARGB(255, 99, 95, 95),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400),
-                ),
-                SizedBox(width: width * 0.02),
-                const Expanded(
-                  child: Divider(
-                    height: 2.0,
-                    color: Color.fromARGB(255, 126, 122, 122),
-                    thickness: 0.8,
+                    shadows: skipButtonShadows,
+                    color: skipButtonColor,
+                    decoration: TextDecoration.underline,
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: height * 0.04),
-            GenericButton(
-              backgroundColor: MaterialStateProperty.all(
-                Colors.deepPurple,
               ),
-              onPressed: () async {
-                context.read<AuthBloc>().add(
-                      AuthEventTypeEmail(
-                        authType: AuthType.login,
-                        textFieldBorderColor:
-                            const Color.fromRGBO(186, 186, 186, 100),
-                        authPage: AuthPage.onTypingEmailPage,
-                        isFieldValid: false,
-                      ),
-                    );
-              },
-              child: const GenericChild(
-                button: Button.login,
-              ),
-            ),
-            GenericButton(
-              onPressed: () {
-                context.read<AuthBloc>().add(
-                      AuthEventTypeEmail(
-                        authType: AuthType.register,
-                        textFieldBorderColor:
-                            const Color.fromRGBO(186, 186, 186, 100),
-                        authPage: AuthPage.onTypingEmailPage,
-                        isFieldValid: false,
-                      ),
-                    );
-              },
-              child: const GenericChild(
-                button: Button.createAccount,
-              ),
-            ),
-            SizedBox(height: height * 0.13),
-            GestureDetector(
-              onTapDown: (details) {
-                context
-                    .read<AuthBloc>()
-                    .add(const AuthEventSeekMain(shouldSkipButtonGlow: true));
-              },
-              onTapUp: (details) {
-                context
-                    .read<AuthBloc>()
-                    .add(const AuthEventSeekMain(shouldSkipButtonGlow: false));
-              },
-              onTapCancel: () {
-                context
-                    .read<AuthBloc>()
-                    .add(const AuthEventSeekMain(shouldSkipButtonGlow: false));
-              },
-              child: Text(
-                "Skip for now",
-                style: TextStyle(
-                  shadows: skipButtonShadows,
-                  color: skipButtonColor,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-          ],
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );

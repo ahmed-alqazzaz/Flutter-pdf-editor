@@ -119,7 +119,7 @@ class GenericTextButtonChild extends StatelessWidget {
     required this.widget,
   });
 
-  GenericTextButtonChild._socialMediaPlatform({
+  GenericTextButtonChild._socialMediaPlatformAuth({
     required ImageProvider<Object> image,
     required String text,
   }) : widget = GenericTextButtonChild(
@@ -154,9 +154,10 @@ class GenericTextButtonChild extends StatelessWidget {
           ),
         );
 
-  GenericTextButtonChild._toBeNamed(
-      {required String text, required Color textColor})
-      : widget = Center(
+  GenericTextButtonChild._mainAuth({
+    required String text,
+    required Color textColor,
+  }) : widget = Center(
           child: Text(
             text,
             style: TextStyle(
@@ -168,45 +169,35 @@ class GenericTextButtonChild extends StatelessWidget {
         );
 
   factory GenericTextButtonChild.apple() {
-    const image = AssetImage("assets/apple_logo.png");
-    const text = "Continue With apple";
-    return GenericTextButtonChild._socialMediaPlatform(
-      image: image,
-      text: text,
+    return GenericTextButtonChild._socialMediaPlatformAuth(
+      image: const AssetImage("assets/apple_logo.png"),
+      text: "Continue With apple",
     );
   }
 
   factory GenericTextButtonChild.facebook() {
-    const image = AssetImage("assets/facebook_logo.png");
-    const text = "Continue With Facebook";
-    return GenericTextButtonChild._socialMediaPlatform(
-      image: image,
-      text: text,
+    return GenericTextButtonChild._socialMediaPlatformAuth(
+      image: const AssetImage("assets/facebook_logo.png"),
+      text: "Continue With facebook",
     );
   }
 
   factory GenericTextButtonChild.google() {
-    const image = AssetImage("assets/google_logo.png");
-    const text = "Continue With Google";
-    return GenericTextButtonChild._socialMediaPlatform(
-      image: image,
-      text: text,
+    return GenericTextButtonChild._socialMediaPlatformAuth(
+      image: const AssetImage("assets/google_logo.png"),
+      text: "Continue With google",
     );
   }
   factory GenericTextButtonChild.login() {
-    const text = "Log in";
-    const textColor = Colors.white;
-    return GenericTextButtonChild._toBeNamed(
-      text: text,
-      textColor: textColor,
+    return GenericTextButtonChild._mainAuth(
+      text: 'Log in',
+      textColor: Colors.white,
     );
   }
   factory GenericTextButtonChild.register() {
-    const text = "Register";
-    const textColor = Colors.white;
-    return GenericTextButtonChild._toBeNamed(
-      text: text,
-      textColor: textColor,
+    return GenericTextButtonChild._mainAuth(
+      text: 'Register',
+      textColor: Colors.white,
     );
   }
 

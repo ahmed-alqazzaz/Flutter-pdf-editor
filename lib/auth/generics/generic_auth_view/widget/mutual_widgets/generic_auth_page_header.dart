@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../bloc/enums/auth_type.dart';
+import '../../../../bloc/enums/auth_type.dart';
 
 typedef OnPressed = void Function();
 

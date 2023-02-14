@@ -4,7 +4,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/bloc/auth_state.dart';
 
-import '../../../bloc/auth_bloc.dart';
+import '../../../../bloc/auth_bloc.dart';
 
 class GenericPrefixIcon extends StatelessWidget {
   const GenericPrefixIcon({super.key});
