@@ -1,6 +1,6 @@
-import 'package:pdf_editor/auth/services/firebase_auth_provider.dart';
+import 'package:pdf_editor/auth/auth_service/firebase_auth_provider.dart';
 
-class AuthServices {
+class AuthService {
   final _provider = FirebaseAuthProvider();
 
   static EmailAndPasswordAuthservice withEmailAndPassword() =>
@@ -21,31 +21,31 @@ class AuthServices {
   Future<void> signOut() async => await _provider.signOut();
 }
 
-class GoogleAuthservice extends AuthServices {
+class GoogleAuthservice extends AuthService {
   Future<void> signIn() async {
     return await _provider.signInWithGoogle();
   }
 }
 
-class FacebookAuthservice extends AuthServices {
+class FacebookAuthservice extends AuthService {
   Future<void> signIn() async {
     return await _provider.signInWithFacebook();
   }
 }
 
-class AppleAuthservice extends AuthServices {
+class AppleAuthservice extends AuthService {
   Future<void> signIn() async {
     return await _provider.signInWithApple();
   }
 }
 
-class AnonymousAuthservice extends AuthServices {
+class AnonymousAuthservice extends AuthService {
   Future<void> signIn() async {
     return await _provider.signInAnonymously();
   }
 }
 
-class EmailAndPasswordAuthservice extends AuthServices {
+class EmailAndPasswordAuthservice extends AuthService {
   Future<void> createUser({
     required String email,
     required String password,

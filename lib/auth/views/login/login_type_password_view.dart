@@ -5,7 +5,7 @@ import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/enums/auth_page.dart';
 
-import '../../generics/views/generic_auth_view.dart';
+import '../../generics/generic_auth_view/generic_auth_view.dart';
 
 class LoginTypePasswordView extends StatelessWidget {
   const LoginTypePasswordView({super.key});
@@ -13,13 +13,14 @@ class LoginTypePasswordView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GenericAuthView(
-      onProceed: () {},
+      onProceed: () {
+        context.read<AuthBloc>().add(
+            AuthEventLogIn(email: "stevehighly@usa.com", password: "XXXXXXXX"));
+      },
       onBack: () {
         context.read<AuthBloc>().add(AuthEventTypeEmail(
               authType: AuthType.login,
-              textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
               authPage: AuthPage.onTypingEmailPage,
-              isFieldValid: false,
             ));
       },
     );

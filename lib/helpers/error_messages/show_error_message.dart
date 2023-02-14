@@ -9,6 +9,10 @@ void showErrorMessage({
 }) async {
   final overlayEntry = OverlayEntry(
     builder: (context) {
+      /*
+      the error message actual duration will be 700 milliseconds less than 
+      the requested duration due to the time spent in the fade in/out animation
+      */
       return ErrorMessage(
         text: text,
         duration: Duration(milliseconds: duration.inMilliseconds - 700),

@@ -6,7 +6,7 @@ import 'package:pdf_editor/auth/bloc/enums/auth_page.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
 
 import '../../bloc/auth_bloc.dart';
-import '../../generics/views/generic_auth_view.dart';
+import '../../generics/generic_auth_view/generic_auth_view.dart';
 
 class RegisterTypeEmailView extends StatelessWidget {
   const RegisterTypeEmailView({super.key});
@@ -17,10 +17,8 @@ class RegisterTypeEmailView extends StatelessWidget {
       onProceed: () {
         context.read<AuthBloc>().add(
               AuthEventTypePassword(
-                isTextObscure: true,
-                textFieldBorderColor: const Color.fromRGBO(186, 186, 186, 100),
+                email: 'todo',
                 authPage: AuthPage.onTypingPasswordPage,
-                isFieldValid: false,
                 authType: AuthType.register,
               ),
             );

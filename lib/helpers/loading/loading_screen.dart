@@ -46,7 +46,7 @@ class LoadingScreen {
     final overlayEntry = OverlayEntry(
       builder: (BuildContext context) {
         return Material(
-          color: Colors.white,
+          color: Colors.transparent.withOpacity(0.5),
           child: IgnorePointer(
             child: Center(
               child: Padding(
