@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ErrorMessage extends StatefulWidget {
-  const ErrorMessage({super.key, required this.text});
+  const ErrorMessage({super.key, required this.text, required this.duration});
 
   final String text;
+  final Duration duration;
 
   @override
   State<ErrorMessage> createState() => _ErrorMessageState();
@@ -37,8 +38,8 @@ class _ErrorMessageState extends State<ErrorMessage>
     // kick off the opacity animation
     _animationController.forward();
 
-    // The opacity will be at its maximum for 2 seconds. Afterwards, the animation will reverse
-    Future.delayed(const Duration(milliseconds: 2300)).then((value) {
+    // The opacity will be at its maximum for 4 seconds. Afterwards, the animation will reverse
+    Future.delayed(widget.duration).then((value) {
       _animationController.reverse();
     });
     super.initState();
