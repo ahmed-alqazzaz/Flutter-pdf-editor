@@ -95,7 +95,7 @@ class LoadingScreen {
       },
     );
 
-    state?.insert(overlayEntry);
+    state.insert(overlayEntry);
     return LoadingScreenController(
       close: () {
         overlayEntry.remove();
