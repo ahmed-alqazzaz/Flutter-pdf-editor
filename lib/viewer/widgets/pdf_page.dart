@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:rxdart/rxdart.dart';
@@ -107,6 +108,7 @@ class _PageStackState extends State<PageStack> {
     return BlocBuilder<PageBloc, PageState>(
       builder: (context, state) {
         return GestureDetector(
+          onTap: () {},
           onTapDown: (details) {
             if (state is PageStateUpdatingDisplay &&
                 state.extractedText != null) {
