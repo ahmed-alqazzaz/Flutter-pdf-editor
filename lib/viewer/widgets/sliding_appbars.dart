@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'generic_sliding_appbar.dart';
 
@@ -22,11 +23,21 @@ class _SlidingAppBarsState extends State<SlidingAppBars>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
+    // hide system UI
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [],
+    );
     super.initState();
   }
 
   @override
   void dispose() {
+    // restore system UI
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
     _controller.dispose();
     super.dispose();
   }
@@ -40,11 +51,24 @@ class _SlidingAppBarsState extends State<SlidingAppBars>
             builder: (context, snapshot) {
               PopupMenuOption? selectedOption;
               if (snapshot.hasData) {
-                print(snapshot.data);
+                final isVisible = snapshot.data!;
+                if (isVisible) {
+                  // show system botom UI
+                  SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.manual,
+                    overlays: [SystemUiOverlay.bottom],
+                  );
+                } else {
+                  // hide system bottom UI
+                  SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.manual,
+                    overlays: [],
+                  );
+                }
                 return SlidingAppBar(
                   slidingOffset: const Offset(0, -1),
                   controller: _controller,
-                  visible: snapshot.data!,
+                  visible: isVisible,
                   child: AppBar(
                     actions: [
                       PopupMenuButton<PopupMenuOption>(
@@ -56,7 +80,7 @@ class _SlidingAppBarsState extends State<SlidingAppBars>
                             <PopupMenuEntry<PopupMenuOption>>[
                           const PopupMenuItem<PopupMenuOption>(
                             value: PopupMenuOption.share,
-                            child: Text("hhhh"),
+                            child: Text("share"),
                           )
                         ],
                       )
