@@ -8,22 +8,22 @@ import 'package:pdf_editor/viewer/crud/text_recognizer.dart';
 class PdfToImage {
   // create a singelton
   factory PdfToImage() => _shared;
-
   PdfToImage._sharedInstance();
-
-  bool isDocumentOpen = false;
-
   static final PdfToImage _shared = PdfToImage._sharedInstance();
 
-  late final Dimensions _pdfDimensions;
+  bool isDocumentOpen = false;
   PdfDocument? _pdfDocument;
-  late final String? _pdfPath;
+  Dimensions? _pdfDimensions;
+  String? _pdfPath;
 
   Dimensions get pdfDimensions {
     if (isDocumentOpen == false) {
       throw UnimplementedError();
     }
-    return _pdfDimensions;
+    if (_pdfDimensions == null) {
+      throw UnimplementedError();
+    }
+    return _pdfDimensions!;
   }
 
   Future<PdfDocument> get pdfDocument async => await _open();
@@ -172,7 +172,7 @@ class PdfToImage {
     await _open();
     isDocumentOpen = true;
 
-    // assign pdfDimension
+    // assign pdf dimensions to the first page dimensions
     await pdfDocument.then(
       (doc) => doc.getPage(1).then(
         (page) async {
