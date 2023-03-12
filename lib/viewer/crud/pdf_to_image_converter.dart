@@ -1,9 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:native_pdf_renderer/native_pdf_renderer.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'dart:developer' as dev;
+import 'package:flutter/material.dart';
+import 'package:pdf_render/pdf_render.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_editor/viewer/crud/text_recognizer.dart';
+import 'package:tuple/tuple.dart';
 
 class PdfToImage {
   // create a singelton
@@ -11,28 +16,15 @@ class PdfToImage {
   PdfToImage._sharedInstance();
   static final PdfToImage _shared = PdfToImage._sharedInstance();
 
-  bool isDocumentOpen = false;
-  PdfDocument? _pdfDocument;
-  Dimensions? _pdfDimensions;
-  String? _pdfPath;
-
-  Dimensions get pdfDimensions {
-    if (isDocumentOpen == false) {
-      throw UnimplementedError();
-    }
-    if (_pdfDimensions == null) {
-      throw UnimplementedError();
-    }
-    return _pdfDimensions!;
-  }
-
-  Future<PdfDocument> get pdfDocument async => await _open();
-
   // cache is meant to store:
-  // 1 - low resolution images when the viewer is initialized or page is disposed
-  // 2 - high resolution images when pages are active
+  // low resolution images(scale factor =< 3 ) when the viewer is initialized
   final _cache = <int, PageImage>{};
   Map<int, PageImage> get cache => _cache;
+
+  PdfDocument? _pdfDocument;
+  String? _pdfPath;
+
+  Future<PdfDocument> get pdfDocument async => await _open();
 
   // this is meant to be executed after the page is disposed
   void resetCache() {
@@ -51,30 +43,32 @@ class PdfToImage {
 
   // this is meant to be used during the viewer initialazation
   Future<void> cacheAll() async {
+    final x = Stopwatch()..start();
     final document = await pdfDocument;
-    for (int pageNumber = 1; pageNumber <= document.pagesCount; pageNumber++) {
+    for (int pageNumber = 1; pageNumber <= document.pageCount; pageNumber++) {
       await getOrUpdateImage(
         pageNumber: pageNumber,
         scaleFactor: 1,
         useCache: false,
       );
     }
+    print("cached in ${x.elapsedMilliseconds}");
   }
 
+  // this is intended to return full image with scale factor < 3
   Future<PageImage> getOrUpdateImage({
     required final int pageNumber,
     required final double scaleFactor,
     final bool useCache = true,
   }) async {
-    if (isDocumentOpen == false) {
+    if (_pdfDocument == null) {
       throw UnimplementedError();
     }
-
-    final document = await pdfDocument;
     if (scaleFactor <= 0) {
       throw ArgumentError("scale must be a positive integer");
     }
-    if (pageNumber > document.pagesCount || pageNumber <= 0) {
+    final document = await pdfDocument;
+    if (pageNumber > document.pageCount || pageNumber <= 0) {
       throw UnimplementedError();
     }
 
@@ -86,32 +80,30 @@ class PdfToImage {
         useCache) {
       return cachedImage;
     } else {
-      final pdfFileName = _pdfPath!.split("/").last.split(".").first;
-      final imageFolderPath = await _getImageDirectory(pdfFileName);
-      final imagePath = '$imageFolderPath/image${pageNumber}_$scaleFactor.jpg';
+      final imagePath = await _createImagePath(
+        pageNumber: pageNumber,
+        scaleFactor: scaleFactor,
+      );
 
       PageImage? pageImage = await loadImage(
         imagePath: imagePath,
-        scaleFactor: scaleFactor,
       );
 
       // in case there is no image in images folder
       if (pageImage == null) {
         // create image with the specified resolution
+        final image = await createImage(
+          pageNumber: pageNumber,
+          scaleFactor: scaleFactor,
+        ).then((image) => image
+            .toByteData(format: ui.ImageByteFormat.png)
+            .then((byteData) => byteData!.buffer.asUint8List()));
+
+        // save image to folder
+        final file = File(imagePath);
+        file.writeAsBytesSync(image);
+
         final page = await document.getPage(pageNumber);
-        final image = await page
-            .render(
-              width: page.width * scaleFactor,
-              height: page.height * scaleFactor,
-              format: PdfPageImageFormat.jpeg,
-              quality: 100,
-            )
-            .whenComplete(() async => await page.close());
-
-        // save image to image folder
-        final File file = File(imagePath);
-        file.writeAsBytesSync(image!.bytes, flush: true);
-
         pageImage = PageImage(
           path: file.path,
           dimensions: Dimensions(
@@ -131,77 +123,97 @@ class PdfToImage {
     }
   }
 
+  Future<ui.Image> createImage({
+    required int pageNumber,
+    required double scaleFactor,
+    Rect? pageCropRect,
+  }) async {
+    return await pdfDocument.then((document) async => document
+        .getPage(pageNumber)
+        .then((page) async => await page.render(
+              height: pageCropRect != null
+                  ? pageCropRect.height.toInt()
+                  : (page.height * scaleFactor).toInt(),
+              width: pageCropRect != null
+                  ? pageCropRect.width.toInt()
+                  : (page.width * scaleFactor).toInt(),
+              fullHeight: page.height * scaleFactor,
+              fullWidth: page.width * scaleFactor,
+              x: pageCropRect?.left.toInt() ?? 0,
+              y: pageCropRect?.top.toInt() ?? 0,
+            ))
+        .then((pdfPageImage) async =>
+            pdfPageImage.imageIfAvailable ??
+            await pdfPageImage.createImageIfNotAvailable()));
+  }
+
   // returns PageImage if an already existing image
   // is found in the images folder
-  Future<PageImage?> loadImage({
-    required String imagePath,
-    required double scaleFactor,
-  }) async {
-    // check if file open
-    if (isDocumentOpen == false) {
+  Future<PageImage?> loadImage({required String imagePath}) async {
+    if (_pdfDocument != false) {
       throw UnimplementedError();
     }
     // check if image exists
     if (await File(imagePath).exists() != true) {
       return null;
     }
+
+    // extract scale factor and page number from the path
+    final pageNumber =
+        int.parse(imagePath.split("/").reversed.toList()[0].split('').first);
+    final scaleFactor = double.parse(imagePath.split("/").reversed.toList()[1]);
+
+    final page = await pdfDocument.then(
+      (document) async => await document.getPage(pageNumber),
+    );
     return PageImage(
       path: imagePath,
       initialDimensions: Dimensions(
-        width: pdfDimensions.width,
-        height: pdfDimensions.height,
+        width: page.width,
+        height: page.height,
       ),
       dimensions: Dimensions(
-        width: 396 * scaleFactor,
-        height: 612 * scaleFactor,
+        width: page.width * scaleFactor,
+        height: page.height * scaleFactor,
       ),
     );
   }
 
   Future<void> open(String pdfPath) async {
     // in case file is already open
-    if (_pdfDocument?.isClosed == false) {
+    if (_pdfDocument != null) {
       throw UnimplementedError();
-    } // in case file does'nt exist
-
+    }
+    // in case file does'nt exist
     else if (!(await File(pdfPath).exists())) {
       throw UnimplementedError();
     }
     _pdfPath = pdfPath;
-
     await _open();
-    isDocumentOpen = true;
-
-    // assign pdf dimensions to the first page dimensions
-    await pdfDocument.then(
-      (doc) => doc.getPage(1).then(
-        (page) async {
-          await page.close();
-          _pdfDimensions = Dimensions(
-            width: page.width,
-            height: page.height,
-          );
-        },
-      ),
-    );
   }
 
   Future<void> close() async {
-    if (isDocumentOpen == false) {
+    if (_pdfDocument == null) {
       throw UnimplementedError();
     }
-    try {
-      _pdfDocument!.close();
-      isDocumentOpen = false;
-      _pdfPath = null;
-      _cache.clear();
-    } catch (e) {
-      throw UnimplementedError();
-    }
+
+    // TODO: remove redundant vars
+    _pdfDocument = null;
+    _pdfPath = null;
+    _cache.clear();
+  }
+
+  Future<String> _createImagePath({
+    required int pageNumber,
+    required double scaleFactor,
+  }) async {
+    final pdfFileName = _pdfPath!.split("/").last.split(".").first;
+    final imageFolderPath = await _getImageDirectory(pdfFileName, scaleFactor);
+    return '$imageFolderPath/$pageNumber.jpg';
   }
 
   Future<PdfDocument> _open() async {
-    if (_pdfDocument?.isClosed == false) {
+    if (_pdfDocument != null) {
       return _pdfDocument!;
     }
     if (_pdfPath == null) {
@@ -217,12 +229,12 @@ class PdfToImage {
   }
 
   // return path to temporary folder that contain images
-  Future<String> _getImageDirectory(final String pdfName) async {
+  Future<String> _getImageDirectory(String pdfName, double scaleFactor) async {
     final tempDirectory = await getTemporaryDirectory();
 
     // get the images folder
-    final Directory imagesFolder =
-        Directory('${tempDirectory.path}/$pdfName/$imageFolderName/');
+    final Directory imagesFolder = Directory(
+        '${tempDirectory.path}/$pdfName/$imageFolderName/$scaleFactor');
 
     return await imagesFolder.exists().then(
       (value) async {
