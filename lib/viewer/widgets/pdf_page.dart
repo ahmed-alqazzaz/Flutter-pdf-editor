@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-
+import 'dart:ui' as ui;
+import 'dart:developer' as dev show log;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:rxdart/rxdart.dart';
@@ -14,14 +14,14 @@ import '../bloc/page_events.dart';
 import '../bloc/page_states.dart';
 import '../crud/pdf_to_image_converter.dart';
 
-class PdfPage extends StatelessWidget {
-  const PdfPage({
+class PdfPageProvider extends StatelessWidget {
+  const PdfPageProvider({
     super.key,
     required this.pageNumber,
-    required this.scaleLevel,
+    required this.viewportController,
   });
   final int pageNumber;
-  final BehaviorSubject<double> scaleLevel;
+  final BehaviorSubject<Matrix4> viewportController;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class PdfPage extends StatelessWidget {
       create: (context) => PageBloc(),
       child: PageStack(
         pageNumber: pageNumber,
-        scaleLevel: scaleLevel,
+        viewportController: viewportController,
       ),
     );
   }
@@ -39,54 +39,46 @@ class PageStack extends StatefulWidget {
   const PageStack({
     super.key,
     required this.pageNumber,
-    required this.scaleLevel,
+    required this.viewportController,
   });
   final int pageNumber;
-  final BehaviorSubject<double> scaleLevel;
+  final BehaviorSubject<Matrix4> viewportController;
+
   @override
   State<PageStack> createState() => _PageStackState();
 }
 
 class _PageStackState extends State<PageStack> {
+  late final StreamSubscription<Matrix4> viewportSubscription;
   Timer? scaleFactorTimer;
-  late final StreamSubscription<double> scaleSubscription;
-  late final BehaviorSubject<bool> isPageOnView;
+  bool _isPageOnView = false;
+  Rect? _pageVisibleBounds;
+
   @override
   void initState() {
-    isPageOnView = BehaviorSubject<bool>();
-    // increase scaleFactor(resolution) after 3 seconds
-
     scaleFactorTimer = Timer(const Duration(milliseconds: 1500), () {
-      final pageBloc = context.read<PageBloc>();
-      final state = pageBloc.state;
-      pageBloc.add(
-        PageEventUpdateDisplay(
-          pageNumber: widget.pageNumber,
-          scaleFactor: 3,
-          extractedText:
-              state is PageStateUpdatingDisplay ? state.extractedText : null,
-        ),
-      );
-    });
-    scaleSubscription =
-        widget.scaleLevel.stream.distinct().listen((zoomLevel) async {
-      final state = context.read<PageBloc>().state;
-      // update page resolution when zoom level changes
-      if (zoomLevel >= 3 && isPageOnView.valueOrNull == true) {
-        scaleFactorTimer?.cancel();
-
-        scaleFactorTimer = Timer(const Duration(milliseconds: 300), () {
-          context.read<PageBloc>().add(
-                PageEventUpdateDisplay(
-                  pageNumber: widget.pageNumber,
-                  scaleFactor: zoomLevel,
-                  extractedText: state is PageStateUpdatingDisplay
-                      ? state.extractedText
-                      : null,
-                ),
-              );
-        });
-      }
+      viewportSubscription =
+          widget.viewportController.stream.distinct().listen((zoomLevel) async {
+        final state = context.read<PageBloc>().state;
+        // update page resolution when zoom level changes
+        if (_isPageOnView) {
+          scaleFactorTimer?.cancel();
+          scaleFactorTimer = Timer(const Duration(milliseconds: 300), () {
+            context.read<PageBloc>().add(
+                  PageEventUpdateDisplay(
+                    pageVisibleBounds: _pageVisibleBounds!,
+                    pageNumber: widget.pageNumber,
+                    scaleFactor: zoomLevel.getMaxScaleOnAxis(),
+                    extractedText: state is PageStateUpdatingDisplay
+                        ? state.extractedText
+                        : null,
+                  ),
+                );
+          });
+        } else {
+          dev.log("page not on view");
+        }
+      });
     });
 
     super.initState();
@@ -95,20 +87,19 @@ class _PageStackState extends State<PageStack> {
   @override
   void dispose() {
     scaleFactorTimer?.cancel();
-    scaleSubscription.cancel();
-    //  isPageOnView.close();
+    viewportSubscription.cancel();
     PdfToImage().resetCache();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final pageDimension = PdfToImage().pdfDimensions;
+    final pageDimension =
+        PdfToImage().cache[widget.pageNumber]!.initialDimensions;
 
     return BlocBuilder<PageBloc, PageState>(
       builder: (context, state) {
         return GestureDetector(
-          onTap: () {},
           onTapDown: (details) {
             if (state is PageStateUpdatingDisplay &&
                 state.extractedText != null) {
@@ -137,43 +128,93 @@ class _PageStackState extends State<PageStack> {
                 child: VisibilityDetector(
                   key: UniqueKey(),
                   onVisibilityChanged: (details) async {
-                    if (widget.scaleLevel.hasValue) {
-                      // general page visibility fraction (same irregardless of zoom)
-                      // is the page visibility fraction when zoom level (scale level) is 1
-                      // multiplied by the zoom level squared
-                      // and in case page width is larger than the render object (zoom > 1):
-                      // it's multiplied by pdf page to screen page size ratio
-                      final size = MediaQueryData.fromWindow(
-                              WidgetsBinding.instance.window)
-                          .size;
-                      final screenSize = size.width * size.height;
-                      final pdfPageSize =
-                          (pageDimension.width * pageDimension.height);
-                      final pageToScreenRatio = pdfPageSize / screenSize;
+                    if (details.visibleBounds.right != 0 &&
+                        details.visibleBounds.bottom != 0) {
+                      _pageVisibleBounds = details.visibleBounds;
+                      if (widget.viewportController.hasValue) {
+                        dev.log("on view");
+                        // general page visibility fraction (same irregardless of zoom)
+                        // is the page visibility fraction when zoom level (scale level) is 1
+                        // multiplied by the zoom level squared
+                        // and in case page width is larger than the render object (zoom > 1):
+                        // it's multiplied by pdf page to screen page size ratio
+                        final size = MediaQueryData.fromWindow(
+                                WidgetsBinding.instance.window)
+                            .size;
+                        final screenSize = size.width * size.height;
+                        final pdfPageSize =
+                            (pageDimension.width * pageDimension.height);
+                        final pageToScreenRatio = pdfPageSize / screenSize;
 
-                      final pageVisibleFraction = details.visibleFraction *
-                          pow(widget.scaleLevel.value, 2) *
-                          (details.size.width > size.width
-                              ? pageToScreenRatio
-                              : 1);
+                        final pageVisibleFraction = details.visibleFraction *
+                            pow(
+                                widget.viewportController.value
+                                    .getMaxScaleOnAxis(),
+                                2) *
+                            (details.size.width > size.width
+                                ? pageToScreenRatio
+                                : 1);
 
-                      // TODO: check for appbar
-                      // REMINDER: i added 0.1 because the app bar was taking 10% of the window
-                      if (pageVisibleFraction + 0.1 > 0.9) {
-                        isPageOnView.sink.add(true);
-                      } else {
-                        isPageOnView.sink.add(false);
+                        // TODO: check for appbar
+                        // REMINDER: i added 0.1 because the app bar was taking 10% of the window
+                        if (pageVisibleFraction + 0.1 > 0.7) {
+                          _isPageOnView = true;
+                        } else {
+                          _isPageOnView = false;
+                        }
                       }
                     }
                   },
                   child: state is PageStateUpdatingDisplay // use cached image
-                      ? Image.file(
-                          File(PdfToImage().cache[widget.pageNumber]!.path),
-                          fit: BoxFit.fill,
-                          width: 396,
-                          height: 612,
-                          key: UniqueKey(),
+                      ? Stack(
+                          children: [
+                            RawImage(
+                              image: state.mainImage,
+                              fit: BoxFit.fill,
+                              width: 396,
+                              height: 612,
+                              key: UniqueKey(),
+                            ),
+                            if (state.highResolutionPatch != null) ...[
+                              Positioned(
+                                width:
+                                    state.highResolutionPatch!.details.width /
+                                        state.scaleFactor,
+                                height:
+                                    state.highResolutionPatch!.details.height /
+                                        state.scaleFactor,
+                                left: state.highResolutionPatch!.details.left /
+                                    state.scaleFactor,
+                                top: state.highResolutionPatch!.details.top /
+                                    state.scaleFactor,
+                                child: RawImage(
+                                  image: state.highResolutionPatch!.image,
+                                  fit: BoxFit.fill,
+                                  width:
+                                      state.highResolutionPatch!.details.width,
+                                  height:
+                                      state.highResolutionPatch!.details.height,
+                                  key: UniqueKey(),
+                                ),
+                              )
+                            ],
+                          ],
                         )
+                      // CustomPaint(
+                      //     painter: PdfPageCanvas(
+                      //         mainImage: state.mainImage,
+                      //         highResolutionPatch: state.highResolutionPatch,
+                      //         scaleFactor: state.scaleFactor),
+                      //     size: const Size(396, 612),
+                      //     key: UniqueKey(),
+                      //   )
+                      // Image.file(
+                      //     File(PdfToImage().cache[widget.pageNumber]!.path),
+                      //     //   fit: BoxFit.fill,
+                      //     width: 396,
+                      //     height: 612,
+                      //     key: UniqueKey(),
+                      //   )
                       : Image.file(
                           File(PdfToImage().cache[widget.pageNumber]!.path),
                           fit: BoxFit.fill,
@@ -219,4 +260,14 @@ class _PageStackState extends State<PageStack> {
       },
     );
   }
+}
+
+@immutable
+class HighResolutionPatch {
+  const HighResolutionPatch({
+    required this.image,
+    required this.details,
+  });
+  final ui.Image image;
+  final Rect details;
 }

@@ -1,16 +1,14 @@
-import 'dart:async';
-
 import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 
 import 'package:rxdart/rxdart.dart';
 
 import '../crud/pdf_to_image_converter.dart';
 import '../widgets/pdf_page.dart';
 import '../widgets/sliding_appbars.dart';
+import 'dart:ui' as ui;
 
 class PdfViewer extends StatefulWidget {
   const PdfViewer({super.key});
@@ -21,24 +19,27 @@ class PdfViewer extends StatefulWidget {
 
 class _PdfViewerState extends State<PdfViewer> with WidgetsBindingObserver {
   late final BehaviorSubject<bool> _showAppBarController;
-  late final BehaviorSubject<double> _currentScaleLevel;
+  late final BehaviorSubject<Matrix4> _viewportController;
   late final TransformationController _transformationController;
   late final ScrollController _scrollController;
 
   @override
   void initState() {
     _showAppBarController = BehaviorSubject<bool>();
-    _currentScaleLevel = BehaviorSubject<double>();
+    _viewportController = BehaviorSubject<Matrix4>();
     _transformationController = TransformationController();
     _scrollController = ScrollController();
 
+    _viewportController.sink.add(
+      _transformationController.value,
+    );
     super.initState();
   }
 
   @override
   void dispose() {
     _showAppBarController.close();
-    _currentScaleLevel.close();
+    _viewportController.close();
     _transformationController.dispose();
     _scrollController.dispose();
     PdfToImage().close();
@@ -48,16 +49,14 @@ class _PdfViewerState extends State<PdfViewer> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    print("build executed");
     final screenWidth = MediaQuery.of(context).size.width;
-    final pdfPageWidth = PdfToImage().pdfDimensions.width;
     return SafeArea(
       child: Scaffold(
         body: InteractiveViewer(
           transformationController: _transformationController,
-          onInteractionUpdate: (details) {
-            _currentScaleLevel.sink.add(
-              _transformationController.value.getMaxScaleOnAxis(),
+          onInteractionEnd: (details) {
+            _viewportController.sink.add(
+              _transformationController.value,
             );
           },
           maxScale: 10,
@@ -83,13 +82,13 @@ class _PdfViewerState extends State<PdfViewer> with WidgetsBindingObserver {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: EdgeInsets.symmetric(
-                      horizontal: (screenWidth - pdfPageWidth) / 2,
+                      horizontal: (screenWidth - 396) / 2,
                     ),
-                    itemCount: PdfToImage().cache.length,
+                    itemCount: 1, //PdfToImage().cache.length,
                     itemBuilder: (context, index) {
-                      return PdfPage(
+                      return PdfPageProvider(
                         key: Key(index.toString()),
-                        scaleLevel: _currentScaleLevel,
+                        viewportController: _viewportController,
                         pageNumber: index + 1,
                       );
                     },
@@ -106,14 +105,3 @@ class _PdfViewerState extends State<PdfViewer> with WidgetsBindingObserver {
     );
   }
 }
-
-
-
-
-
-// Future<void> initializePdfViewer() async {
-//   final dir = await getApplicationDocumentsDirectory();
-
-//   await PdfToImage().open("${dir.path}/test.pdf");
-//   await PdfToImage().cacheAll();
-// }

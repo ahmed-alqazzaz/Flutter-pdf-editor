@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
+
 import '../crud/text_recognizer.dart';
 
+@immutable
 abstract class PageEvent {
   const PageEvent();
 }
@@ -9,13 +12,15 @@ class PageEventInitial extends PageEvent {
 }
 
 class PageEventUpdateDisplay extends PageEvent {
-  PageEventUpdateDisplay({
+  const PageEventUpdateDisplay({
     required this.pageNumber,
     required this.scaleFactor,
-    required this.extractedText,
+    required this.pageVisibleBounds,
+    this.extractedText,
   });
 
   final int pageNumber;
   final double scaleFactor;
-  WordCollection? extractedText;
+  final Rect pageVisibleBounds;
+  final WordCollection? extractedText;
 }
