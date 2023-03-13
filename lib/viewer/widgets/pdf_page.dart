@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:developer' as dev show log;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -99,19 +100,28 @@ class _PageStackState extends State<PageStack> {
 
     return BlocBuilder<PageBloc, PageState>(
       builder: (context, state) {
-        return GestureDetector(
-          onTapDown: (details) {
-            if (state is PageStateUpdatingDisplay &&
-                state.extractedText != null) {
-              for (final line in state.extractedText!.lines) {
-                for (final word in line.words) {
-                  if (word.isGestureWithinRange(details.localPosition,
-                      state.extractedText!.scaleFactor)) {
-                    print(word.text);
+        return RawGestureDetector(
+          gestures: {
+            AllowMultipleGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<
+                    AllowMultipleGestureRecognizer>(
+              () => AllowMultipleGestureRecognizer(), //constructor
+              (AllowMultipleGestureRecognizer instance) {
+                instance.onTapDown = (localPosition) {
+                  if (state is PageStateUpdatingDisplay &&
+                      state.extractedText != null) {
+                    for (final line in state.extractedText!.lines) {
+                      for (final word in line.words) {
+                        if (word.isGestureWithinRange(
+                            localPosition, state.extractedText!.scaleFactor)) {
+                          print(word.text);
+                        }
+                      }
+                    }
                   }
-                }
-              }
-            }
+                };
+              },
+            )
           },
           child: Stack(
             children: [
@@ -270,4 +280,49 @@ class HighResolutionPatch {
   });
   final ui.Image image;
   final Rect details;
+}
+
+class AllowMultipleGestureRecognizer extends OneSequenceGestureRecognizer {
+  Function(Offset)? onTapDown;
+
+  AllowMultipleGestureRecognizer();
+
+  Offset? _tapDownPosition;
+  bool _isTapDown = false;
+
+  @override
+  void addPointer(PointerDownEvent event) {
+    super.addPointer(event);
+
+    _tapDownPosition = event.position;
+    _isTapDown = true;
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerMoveEvent) {
+      final distance = (_tapDownPosition! - event.position).distance;
+      if (distance > kTouchSlop) {
+        _isTapDown = false;
+      }
+    } else if (event is PointerUpEvent) {
+      if (_isTapDown) {
+        onTapDown?.call(event.localPosition);
+      }
+      _isTapDown = false;
+    }
+  }
+
+  @override
+  void didStopTrackingLastPointer(int pointer) {}
+
+  @override
+  void dispose() {
+    super.dispose();
+    _isTapDown = false;
+  }
+
+  @override
+  // TODO: implement debugDescription
+  String get debugDescription => throw UnimplementedError();
 }
