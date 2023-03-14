@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -6,6 +7,7 @@ import 'dart:developer' as dev show log;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pdf_editor/viewer/crud/text_recognizer.dart';
 
 import 'package:rxdart/rxdart.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -20,9 +22,11 @@ class PdfPageProvider extends StatelessWidget {
     super.key,
     required this.pageNumber,
     required this.viewportController,
+    required this.appBarsVisibilityController,
   });
   final int pageNumber;
   final BehaviorSubject<Matrix4> viewportController;
+  final BehaviorSubject<bool> appBarsVisibilityController;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +35,7 @@ class PdfPageProvider extends StatelessWidget {
       child: PageStack(
         pageNumber: pageNumber,
         viewportController: viewportController,
+        appBarsVisibilityController: appBarsVisibilityController,
       ),
     );
   }
@@ -41,35 +46,40 @@ class PageStack extends StatefulWidget {
     super.key,
     required this.pageNumber,
     required this.viewportController,
+    required this.appBarsVisibilityController,
   });
   final int pageNumber;
   final BehaviorSubject<Matrix4> viewportController;
+  final BehaviorSubject<bool> appBarsVisibilityController;
 
   @override
   State<PageStack> createState() => _PageStackState();
 }
 
 class _PageStackState extends State<PageStack> {
-  late final StreamSubscription<Matrix4> viewportSubscription;
+  late final StreamSubscription<Matrix4> _viewportSubscription;
+  late final BehaviorSubject<Word> _pressedWordsController;
   Timer? scaleFactorTimer;
   bool _isPageOnView = false;
   Rect? _pageVisibleBounds;
 
   @override
   void initState() {
+    _pressedWordsController = BehaviorSubject<Word>();
     scaleFactorTimer = Timer(const Duration(milliseconds: 1500), () {
-      viewportSubscription =
-          widget.viewportController.stream.distinct().listen((zoomLevel) async {
+      _viewportSubscription =
+          widget.viewportController.stream.listen((viewport) async {
         final state = context.read<PageBloc>().state;
-        // update page resolution when zoom level changes
+        // update page resolution when viewport changes
         if (_isPageOnView) {
+          dev.log("page on view");
           scaleFactorTimer?.cancel();
           scaleFactorTimer = Timer(const Duration(milliseconds: 300), () {
             context.read<PageBloc>().add(
                   PageEventUpdateDisplay(
                     pageVisibleBounds: _pageVisibleBounds!,
                     pageNumber: widget.pageNumber,
-                    scaleFactor: zoomLevel.getMaxScaleOnAxis(),
+                    scaleFactor: viewport.getMaxScaleOnAxis(),
                     extractedText: state is PageStateUpdatingDisplay
                         ? state.extractedText
                         : null,
@@ -88,7 +98,8 @@ class _PageStackState extends State<PageStack> {
   @override
   void dispose() {
     scaleFactorTimer?.cancel();
-    viewportSubscription.cancel();
+    _viewportSubscription.cancel();
+    _pressedWordsController.close();
     PdfToImage().resetCache();
     super.dispose();
   }
@@ -102,20 +113,21 @@ class _PageStackState extends State<PageStack> {
       builder: (context, state) {
         return RawGestureDetector(
           gestures: {
-            AllowMultipleGestureRecognizer:
-                GestureRecognizerFactoryWithHandlers<
-                    AllowMultipleGestureRecognizer>(
-              () => AllowMultipleGestureRecognizer(), //constructor
-              (AllowMultipleGestureRecognizer instance) {
-                instance.onTapDown = (localPosition) {
+            PdfPageGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<PdfPageGestureRecognizer>(
+              () => PdfPageGestureRecognizer(),
+              (PdfPageGestureRecognizer instance) {
+                instance.onTapDown = (localPosition) async {
                   if (state is PageStateUpdatingDisplay &&
                       state.extractedText != null) {
                     for (final line in state.extractedText!.lines) {
                       for (final word in line.words) {
                         if (word.isGestureWithinRange(
                             localPosition, state.extractedText!.scaleFactor)) {
+                          _pressedWordsController.sink.add(word);
+
                           print(word.text);
-                        }
+                        } else {}
                       }
                     }
                   }
@@ -142,7 +154,7 @@ class _PageStackState extends State<PageStack> {
                         details.visibleBounds.bottom != 0) {
                       _pageVisibleBounds = details.visibleBounds;
                       if (widget.viewportController.hasValue) {
-                        dev.log("on view");
+                        ////   dev.log("on view");
                         // general page visibility fraction (same irregardless of zoom)
                         // is the page visibility fraction when zoom level (scale level) is 1
                         // multiplied by the zoom level squared
@@ -167,6 +179,8 @@ class _PageStackState extends State<PageStack> {
 
                         // TODO: check for appbar
                         // REMINDER: i added 0.1 because the app bar was taking 10% of the window
+                        dev.log(
+                            "${pageVisibleFraction.toString()} ${widget.pageNumber}");
                         if (pageVisibleFraction + 0.1 > 0.7) {
                           _isPageOnView = true;
                         } else {
@@ -210,21 +224,6 @@ class _PageStackState extends State<PageStack> {
                             ],
                           ],
                         )
-                      // CustomPaint(
-                      //     painter: PdfPageCanvas(
-                      //         mainImage: state.mainImage,
-                      //         highResolutionPatch: state.highResolutionPatch,
-                      //         scaleFactor: state.scaleFactor),
-                      //     size: const Size(396, 612),
-                      //     key: UniqueKey(),
-                      //   )
-                      // Image.file(
-                      //     File(PdfToImage().cache[widget.pageNumber]!.path),
-                      //     //   fit: BoxFit.fill,
-                      //     width: 396,
-                      //     height: 612,
-                      //     key: UniqueKey(),
-                      //   )
                       : Image.file(
                           File(PdfToImage().cache[widget.pageNumber]!.path),
                           fit: BoxFit.fill,
@@ -234,35 +233,62 @@ class _PageStackState extends State<PageStack> {
                         ),
                 ),
               ),
+              StreamBuilder(
+                stream: _pressedWordsController.stream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    state as PageStateUpdatingDisplay;
+                    final word = snapshot.data!;
 
+                    return Positioned(
+                      top: word.position.top,
+                      //bottom: 81,
+                      left: word.position.left,
+                      child: Opacity(
+                        opacity: 0.5,
+                        child: SizedBox(
+                          height: word.dimensions.height,
+                          width: word.dimensions.width,
+                          child: const DecoratedBox(
+                            decoration:
+                                BoxDecoration(color: Colors.lightGreenAccent),
+                          ),
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                },
+              )
               // if (state is PageStateDisplaying &&
               //     state.extractedText != null) ...[
               //   for (final line in state.extractedText!.lines)
               //     for (final word in line.words)
-              //       Positioned(
-              //           top: word.position.top / state.extractedText!.scaleFactor,
-              //           //bottom: 81,
-              //           left:
-              //               word.position.left / state.extractedText!.scaleFactor,
-              //           child: Opacity(
-              //             opacity: 0.5,
-              //             child: GestureDetector(
-              //               onTap: () {
-              //                 print(word.text);
-              //               },
-              //               child: SizedBox(
-              //                 height: word.dimensions.height /
-              //                     state.extractedText!.scaleFactor,
-              //                 width: word.dimensions.width /
-              //                     state.extractedText!.scaleFactor,
-              //                 child: const DecoratedBox(
-              //                   decoration: BoxDecoration(color: Colors.red),
-              //                 ),
-              //               ),
-              //             ),
-              //           )
-              //           //right: MediaQuery.of(context).size.width - 63.4,
+              // Positioned(
+              //     top: word.position.top / state.extractedText!.scaleFactor,
+              //     bottom: 81,
+              //     left:
+              //         word.position.left / state.extractedText!.scaleFactor,
+              //     child: Opacity(
+              //       opacity: 0.5,
+              //       child: GestureDetector(
+              //         onTap: () {
+              //           print(word.text);
+              //         },
+              //         child: SizedBox(
+              //           height: word.dimensions.height /
+              //               state.extractedText!.scaleFactor,
+              //           width: word.dimensions.width /
+              //               state.extractedText!.scaleFactor,
+              //           child: const DecoratedBox(
+              //             decoration: BoxDecoration(color: Colors.red),
               //           ),
+              //         ),
+              //       ),
+              //     )
+              //     right: MediaQuery.of(context).size.width - 63.4,
+              //     ),
               // ],
             ],
           ),
@@ -282,10 +308,10 @@ class HighResolutionPatch {
   final Rect details;
 }
 
-class AllowMultipleGestureRecognizer extends OneSequenceGestureRecognizer {
+class PdfPageGestureRecognizer extends OneSequenceGestureRecognizer {
   Function(Offset)? onTapDown;
 
-  AllowMultipleGestureRecognizer();
+  PdfPageGestureRecognizer();
 
   Offset? _tapDownPosition;
   bool _isTapDown = false;
@@ -298,6 +324,7 @@ class AllowMultipleGestureRecognizer extends OneSequenceGestureRecognizer {
     _isTapDown = true;
   }
 
+  // call tap down only when distance between tap down and up is less than kToupSlop
   @override
   void handleEvent(PointerEvent event) {
     if (event is PointerMoveEvent) {
@@ -323,6 +350,5 @@ class AllowMultipleGestureRecognizer extends OneSequenceGestureRecognizer {
   }
 
   @override
-  // TODO: implement debugDescription
   String get debugDescription => throw UnimplementedError();
 }
