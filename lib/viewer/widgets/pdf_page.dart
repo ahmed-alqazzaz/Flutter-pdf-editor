@@ -113,6 +113,21 @@ class _PageStackState extends State<PageStack> {
       builder: (context, state) {
         return RawGestureDetector(
           gestures: {
+            DoubleTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                DoubleTapGestureRecognizer>(
+              () => DoubleTapGestureRecognizer(),
+              (DoubleTapGestureRecognizer instance) {
+                instance.onDoubleTap = () {
+                  // hide/show app bar when there is a double click
+                  final areAppbarsVisible =
+                      widget.appBarsVisibilityController.valueOrNull;
+
+                  widget.appBarsVisibilityController.sink.add(
+                    areAppbarsVisible != null ? !areAppbarsVisible : false,
+                  );
+                };
+              },
+            ),
             PdfPageGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<PdfPageGestureRecognizer>(
               () => PdfPageGestureRecognizer(),
