@@ -14,9 +14,9 @@ import 'package:pdf_editor/viewer/widgets/pdf_page/word_on_press_effect.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-import '../../bloc/page_bloc.dart';
-import '../../bloc/page_events.dart';
-import '../../bloc/page_states.dart';
+import 'bloc/page_bloc.dart';
+import 'bloc/page_events.dart';
+import 'bloc/page_states.dart';
 import '../../crud/pdf_to_image_converter.dart';
 
 class PdfPage extends StatefulWidget {
@@ -35,43 +35,50 @@ class PdfPage extends StatefulWidget {
 }
 
 class _PdfPageState extends State<PdfPage> {
-  late final StreamSubscription<Matrix4> _viewportSubscription;
   late final BehaviorSubject<Word?> _pressedWordsController;
+  StreamSubscription<Matrix4>? _viewportSubscription;
   Timer? scaleFactorTimer;
+  Timer? visibilityChangeTimer;
   bool _isPageOnView = false;
   Rect? _pageVisibleBounds;
 
   void onPageVisibilityChanges(VisibilityInfo details) {
     if (details.visibleBounds.right != 0 && details.visibleBounds.bottom != 0) {
       _pageVisibleBounds = details.visibleBounds;
-      if (widget.viewportController.hasValue) {
-        ////   dev.log("on view");
-        // general page visibility fraction (same irregardless of zoom)
-        // is the page visibility fraction when zoom level (scale level) is 1
-        // multiplied by the zoom level squared
-        // and in case page width is larger than the render object (zoom > 1):
-        // it's multiplied by pdf page to screen page size ratio
-        final pageDimension =
-            PdfToImage().cache[widget.pageNumber]!.initialDimensions;
-        final size =
-            MediaQueryData.fromWindow(WidgetsBinding.instance.window).size;
-        final screenSize = size.width * size.height;
-        final pdfPageSize = (pageDimension.width * pageDimension.height);
-        final pageToScreenRatio = pdfPageSize / screenSize;
 
-        final pageVisibleFraction = details.visibleFraction *
-            pow(widget.viewportController.value.getMaxScaleOnAxis(), 2) *
-            (details.size.width > size.width ? pageToScreenRatio : 1);
+      // viewportController updates its value 300 milliseconds
+      // after visibilityChange is triggered so timer is necessary
+      // to prevent using old viewport
+      visibilityChangeTimer?.cancel();
+      visibilityChangeTimer = Timer(const Duration(milliseconds: 310), () {
+        if (widget.viewportController.hasValue) {
+          // general page visibility fraction (same irregardless of zoom)
+          // is the page visibility fraction when zoom level (scale level) is 1
+          // multiplied by the zoom level squared
+          // and in case page width is larger than the render object (zoom > 1):
+          // it's multiplied by pdf page to screen page size ratio
+          final pageDimension =
+              PdfToImage().cache[widget.pageNumber]!.initialDimensions;
+          final size =
+              MediaQueryData.fromWindow(WidgetsBinding.instance.window).size;
+          final screenSize = size.width * size.height;
+          final pdfPageSize = (pageDimension.width * pageDimension.height);
+          final pageToScreenRatio = pdfPageSize / screenSize;
 
-        // TODO: check for appbar
-        // REMINDER: i added 0.1 because the app bar was taking 10% of the window
-        dev.log("${pageVisibleFraction.toString()} ${widget.pageNumber}");
-        if (pageVisibleFraction + 0.1 > 0.7) {
-          _isPageOnView = true;
-        } else {
-          _isPageOnView = false;
+          final pageVisibleFraction = details.visibleFraction *
+              pow(widget.viewportController.value.getMaxScaleOnAxis(), 2) *
+              (details.size.width > size.width ? pageToScreenRatio : 1);
+
+          // TODO: check for appbar
+          // REMINDER: i added 0.1 because the app bar was taking 10% of the window
+          dev.log("${pageVisibleFraction.toString()} ${widget.pageNumber}");
+          if (pageVisibleFraction + 0.1 > 0.7) {
+            _isPageOnView = true;
+          } else {
+            _isPageOnView = false;
+          }
         }
-      }
+      });
     }
   }
 
@@ -79,10 +86,21 @@ class _PdfPageState extends State<PdfPage> {
   void initState() {
     _pressedWordsController = BehaviorSubject<Word?>();
     scaleFactorTimer = Timer(const Duration(milliseconds: 1500), () {
+      // when viewport in less than 1.5 seconds after
+      // initstate executes, the subscription won't be able
+      // to listen to viewport changes prior to its creation causing
+      // the state to be stuck so adding the last viewport, if available,
+      // is necessary to trigger the listener
+      if (widget.viewportController.hasValue) {
+        // timer is necessary to ensure subscription is creted before
+        // adding the the last viewport
+        Timer(const Duration(milliseconds: 40), () {
+          widget.viewportController.add(widget.viewportController.value);
+        });
+      }
       _viewportSubscription =
           widget.viewportController.stream.listen((viewport) async {
         final state = context.read<PageBloc>().state;
-        // update page resolution when viewport changes
         if (_isPageOnView) {
           dev.log("page on view");
           scaleFactorTimer?.cancel();
@@ -99,7 +117,7 @@ class _PdfPageState extends State<PdfPage> {
                 );
           });
         } else {
-          dev.log("page not on view");
+          print("page${widget.pageNumber}not on view ");
         }
       });
     });
@@ -110,7 +128,7 @@ class _PdfPageState extends State<PdfPage> {
   @override
   void dispose() {
     scaleFactorTimer?.cancel();
-    _viewportSubscription.cancel();
+    _viewportSubscription?.cancel();
     _pressedWordsController.close();
     PdfToImage().resetCache();
     super.dispose();
@@ -129,7 +147,7 @@ class _PdfPageState extends State<PdfPage> {
             children: [
               // transition between old lower resolution images to higher quality ones
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 1000),
+                duration: const Duration(milliseconds: 800),
                 transitionBuilder: (child, animation) {
                   return FadeTransition(
                     alwaysIncludeSemantics: true,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../crud/text_recognizer.dart';
+import '../../../crud/text_recognizer.dart';
 
 @immutable
 abstract class PageEvent {

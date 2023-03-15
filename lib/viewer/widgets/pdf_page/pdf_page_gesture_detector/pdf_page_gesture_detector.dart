@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:pdf_editor/viewer/crud/text_recognizer.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page_gesture_detector/word_click_detector.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class PdfPageGestureDetector extends StatelessWidget {
   const PdfPageGestureDetector({

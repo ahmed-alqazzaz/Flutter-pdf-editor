@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../../bloc/page_bloc.dart';
+import 'bloc/page_bloc.dart';
 
 class PdfPageProvider extends StatelessWidget {
   const PdfPageProvider({

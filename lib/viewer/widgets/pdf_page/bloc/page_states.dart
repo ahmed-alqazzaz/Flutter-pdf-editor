@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 
 import 'dart:ui' as ui;
-import '../crud/text_recognizer.dart';
+import '../../../crud/text_recognizer.dart';
 
 @immutable
 abstract class PageState extends Equatable {

@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pdf_editor/viewer/bloc/page_events.dart';
-import 'package:pdf_editor/viewer/bloc/page_states.dart';
+import 'package:pdf_editor/viewer/widgets/pdf_page/bloc/page_events.dart';
+import 'package:pdf_editor/viewer/widgets/pdf_page/bloc/page_states.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 
-import '../crud/pdf_to_image_converter.dart';
-import '../crud/text_recognizer.dart';
+import '../../../crud/pdf_to_image_converter.dart';
+import '../../../crud/text_recognizer.dart';
 
 class PageBloc extends Bloc<PageEvent, PageState> {
   PageBloc() : super(const PageStateInitial()) {
@@ -16,7 +16,7 @@ class PageBloc extends Bloc<PageEvent, PageState> {
         final x = Stopwatch()..start();
 
         final mainImage = await PdfToImage().getOrUpdateImage(
-          pageNumber: 1,
+          pageNumber: event.pageNumber,
           scaleFactor: 3,
         );
         HighResolutionPatch? highResolutionPatch;
