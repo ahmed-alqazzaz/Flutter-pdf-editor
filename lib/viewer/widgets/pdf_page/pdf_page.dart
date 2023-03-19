@@ -42,48 +42,64 @@ class _PdfPageState extends State<PdfPage> {
   bool _isPageOnView = false;
   Rect? _pageVisibleBounds;
 
-  void onPageVisibilityChanges(VisibilityInfo details) {
+  void onPageVisibilityChanges(
+    BuildContext context,
+    VisibilityInfo details,
+    double width,
+  ) {
     if (details.visibleBounds.right != 0 && details.visibleBounds.bottom != 0) {
-      _pageVisibleBounds = details.visibleBounds;
-
       // viewportController updates its value 300 milliseconds
       // after visibilityChange is triggered so timer is necessary
       // to prevent using old viewport
+
       visibilityChangeTimer?.cancel();
-      visibilityChangeTimer = Timer(const Duration(milliseconds: 310), () {
-        if (widget.viewportController.hasValue) {
-          // general page visibility fraction (same irregardless of zoom)
-          // is the page visibility fraction when zoom level (scale level) is 1
-          // multiplied by the zoom level squared
-          // and in case page width is larger than the render object (zoom > 1):
-          // it's multiplied by pdf page to screen page size ratio
-          final pageDimension =
-              PdfToImage().cache[widget.pageNumber]!.initialDimensions;
-          final size =
-              MediaQueryData.fromWindow(WidgetsBinding.instance.window).size;
-          final screenSize = size.width * size.height;
-          final pdfPageSize = (pageDimension.width * pageDimension.height);
-          final pageToScreenRatio = pdfPageSize / screenSize;
+      visibilityChangeTimer = Timer(
+        const Duration(milliseconds: 50),
+        () {
+          _pageVisibleBounds = details.visibleBounds;
+          if (widget.viewportController.hasValue) {
+            final scaleFactor =
+                widget.viewportController.value.getMaxScaleOnAxis();
 
-          final pageVisibleFraction = details.visibleFraction *
-              pow(widget.viewportController.value.getMaxScaleOnAxis(), 2) *
-              (details.size.width > size.width ? pageToScreenRatio : 1);
+            // in case viewport controller and visibility detector are'nt synchronized
+            if (details.size.width / scaleFactor != width) {
+              return onPageVisibilityChanges(context, details, width);
+            }
+            //dev.log("hhh ${(details.size.width / scaleFactor).toString()}");
+            // general page visibility fraction (same irregardless of zoom)
+            // is the page visibility fraction when zoom level (scale level) is 1
+            // multiplied by the zoom level squared
+            // and in case page width is larger than the render object (zoom > 1):
+            // it's multiplied by pdf page to screen page size ratio
+            final pageDimension =
+                PdfToImage().cache[widget.pageNumber]!.initialDimensions;
+            final size =
+                MediaQueryData.fromWindow(WidgetsBinding.instance.window).size;
+            final screenSize = size.width * size.height;
+            final pdfPageSize = (pageDimension.width * pageDimension.height);
+            final pageToScreenRatio = pdfPageSize / screenSize;
 
-          // TODO: check for appbar
-          // REMINDER: i added 0.1 because the app bar was taking 10% of the window
-          dev.log("${pageVisibleFraction.toString()} ${widget.pageNumber}");
-          if (pageVisibleFraction + 0.1 > 0.7) {
-            _isPageOnView = true;
-          } else {
-            _isPageOnView = false;
+            final pageVisibleFraction = details.visibleFraction *
+                pow(scaleFactor, 2) *
+                (details.size.width > size.width ? pageToScreenRatio : 1);
+
+            // TODO: check for appbar
+            // REMINDER: i added 0.1 because the app bar was taking 10% of the window
+            dev.log("${pageVisibleFraction.toString()} ${widget.pageNumber}");
+            if (pageVisibleFraction + 0.1 > 0.7) {
+              _isPageOnView = true;
+            } else {
+              _isPageOnView = false;
+            }
           }
-        }
-      });
+        },
+      );
     }
   }
 
   @override
   void initState() {
+    // rename to highlightController
     _pressedWordsController = BehaviorSubject<Word?>();
     scaleFactorTimer = Timer(const Duration(milliseconds: 1500), () {
       // when viewport in less than 1.5 seconds after
@@ -130,12 +146,17 @@ class _PdfPageState extends State<PdfPage> {
     scaleFactorTimer?.cancel();
     _viewportSubscription?.cancel();
     _pressedWordsController.close();
+    visibilityChangeTimer?.cancel();
     PdfToImage().resetCache();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final screenToPdfWidthRation =
+        width / PdfToImage().cache[widget.pageNumber]!.initialDimensions.width;
+
     return BlocBuilder<PageBloc, PageState>(
       builder: (context, state) {
         return PdfPageGestureDetector(
@@ -157,28 +178,32 @@ class _PdfPageState extends State<PdfPage> {
                 },
                 child: VisibilityDetector(
                   key: UniqueKey(),
-                  onVisibilityChanged: onPageVisibilityChanges,
+                  onVisibilityChanged: (info) =>
+                      onPageVisibilityChanges(context, info, width),
                   child: state is PageStateUpdatingDisplay
                       ? Stack(
                           children: [
                             RawImage(
                               image: state.mainImage,
                               fit: BoxFit.fill,
-                              width: 396,
-                              height: 612,
+                              width: width,
                               key: UniqueKey(),
                             ),
                             if (state.highResolutionPatch != null) ...[
                               Positioned(
                                 width:
-                                    state.highResolutionPatch!.details.width /
+                                    state.highResolutionPatch!.details.width *
+                                        screenToPdfWidthRation /
                                         state.scaleFactor,
                                 height:
-                                    state.highResolutionPatch!.details.height /
+                                    state.highResolutionPatch!.details.height *
+                                        screenToPdfWidthRation /
                                         state.scaleFactor,
-                                left: state.highResolutionPatch!.details.left /
+                                left: state.highResolutionPatch!.details.left *
+                                    screenToPdfWidthRation /
                                     state.scaleFactor,
-                                top: state.highResolutionPatch!.details.top /
+                                top: state.highResolutionPatch!.details.top *
+                                    screenToPdfWidthRation /
                                     state.scaleFactor,
                                 child: RawImage(
                                   image: state.highResolutionPatch!.image,
@@ -197,8 +222,7 @@ class _PdfPageState extends State<PdfPage> {
                       Image.file(
                           File(PdfToImage().cache[widget.pageNumber]!.path),
                           fit: BoxFit.fill,
-                          width: 396,
-                          height: 612,
+                          width: width,
                           key: UniqueKey(),
                         ),
                 ),
