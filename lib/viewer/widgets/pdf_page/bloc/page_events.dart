@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../../crud/text_recognizer.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 @immutable
 abstract class PageEvent {
@@ -22,5 +21,5 @@ class PageEventUpdateDisplay extends PageEvent {
   final int pageNumber;
   final double scaleFactor;
   final Rect pageVisibleBounds;
-  final WordCollection? extractedText;
+  final RecognizedText? extractedText;
 }

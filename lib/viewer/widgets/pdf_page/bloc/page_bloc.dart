@@ -2,12 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/bloc/page_events.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/bloc/page_states.dart';
-import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 
-import '../../../crud/pdf_to_image_converter.dart';
-import '../../../crud/text_recognizer.dart';
+import '../../../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
+
+import 'data.dart';
 
 class PageBloc extends Bloc<PageEvent, PageState> {
   PageBloc() : super(const PageStateInitial()) {
@@ -17,38 +18,37 @@ class PageBloc extends Bloc<PageEvent, PageState> {
 
         final mainImage = await PdfToImage().getOrUpdateImage(
           pageNumber: event.pageNumber,
-          scaleFactor: 3,
+          scaleFactor: 4,
         );
         HighResolutionPatch? highResolutionPatch;
-        print(event.scaleFactor);
         if (event.scaleFactor > 3) {
-          highResolutionPatch = await PdfToImage()
-              .createImage(
-                pageNumber: 3,
-                scaleFactor: event.scaleFactor,
-                pageCropRect: event.pageVisibleBounds,
-              )
-              .then((image) => HighResolutionPatch(
-                    image: image,
-                    details: event.pageVisibleBounds,
-                  ));
+          highResolutionPatch = HighResolutionPatch(
+            image: await PdfToImage().createImage(
+              pageNumber: event.pageNumber,
+              scaleFactor: event.scaleFactor,
+              pageCropRect: event.pageVisibleBounds,
+            ),
+            details: event.pageVisibleBounds,
+          );
 
           print("lasted: ${x.elapsedMilliseconds}");
         }
-
+        await TextRecognizer()
+            .processImage(InputImage.fromFilePath(mainImage.path));
         emit(
           PageStateUpdatingDisplay(
             scaleFactor: event.scaleFactor,
             mainImage: await decodeImageFromList(
-                File(mainImage.path).readAsBytesSync()),
+              File(mainImage.path).readAsBytesSync(),
+            ),
             highResolutionPatch: highResolutionPatch,
+            // generate wordcollection only when scaleFactor is 4 or above
+            // and it has not been generated before
 
-            // generate wordcollection only when scaleFactor is 3 or above
-            extractedText: mainImage.scaleFactor >= 3
+            extractedText: mainImage.scaleFactor >= 4
                 ? event.extractedText ??
-                    await wordCollectionExtractor(
-                        imageFilePath: mainImage.path,
-                        scaleFactor: mainImage.scaleFactor)
+                    await TextRecognizer()
+                        .processImage(InputImage.fromFilePath(mainImage.path))
                 : null,
           ),
         );

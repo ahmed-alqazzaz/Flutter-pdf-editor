@@ -1,9 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 import 'dart:ui' as ui;
-import '../../../crud/text_recognizer.dart';
+
+import 'data.dart';
 
 @immutable
 abstract class PageState extends Equatable {
@@ -26,7 +27,7 @@ class PageStateUpdatingDisplay extends PageState {
 
   final ui.Image mainImage;
   final double scaleFactor;
-  final WordCollection? extractedText;
+  final RecognizedText? extractedText;
   final HighResolutionPatch? highResolutionPatch;
 
   @override
