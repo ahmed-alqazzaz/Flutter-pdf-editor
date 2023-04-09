@@ -1,9 +1,9 @@
 import 'package:flutter/gestures.dart';
 
-class PdfPageGestureRecognizer extends OneSequenceGestureRecognizer {
-  Function(Offset)? onTapDown;
+class WordTapGestureRecognizer extends OneSequenceGestureRecognizer {
+  Function(PointerUpEvent)? onTapUp;
 
-  PdfPageGestureRecognizer();
+  WordTapGestureRecognizer();
 
   Offset? _tapDownPosition;
   bool _isTapDown = false;
@@ -26,7 +26,7 @@ class PdfPageGestureRecognizer extends OneSequenceGestureRecognizer {
       }
     } else if (event is PointerUpEvent) {
       if (_isTapDown) {
-        onTapDown?.call(event.localPosition);
+        onTapUp?.call(event);
       }
       _isTapDown = false;
     }
@@ -42,5 +42,5 @@ class PdfPageGestureRecognizer extends OneSequenceGestureRecognizer {
   }
 
   @override
-  String get debugDescription => "PdfPageWordsClickRecognizer";
+  String get debugDescription => "PdfPageWordPressCRecognizer";
 }
