@@ -1,105 +1,75 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:draggable_scrollbar/draggable_scrollbar.dart';
-import 'package:flutter/gestures.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
-import 'package:rxdart/rxdart.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:pdf_editor/viewer/providers/scroll_controller_provider.dart';
+import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 
-import '../crud/pdf_to_image_converter.dart';
-import '../widgets/pdf_page.dart';
-import '../widgets/sliding_appbars.dart';
-import 'dart:ui' as ui;
-import 'dart:developer' as dev;
+import '../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 
-class PdfViewer extends StatefulWidget {
-  const PdfViewer({super.key});
+import '../utils/viewport_controller.dart';
+import '../widgets/sliding_appbars/sliding_appbars.dart';
 
-  @override
-  State<PdfViewer> createState() => _PdfViewerState();
-}
+class PdfViewer extends ConsumerWidget {
+  late final _transformationController = TransformationController();
+  late final _viewportController = ViewportController();
+  final _pdfPageKeys = <int, GlobalKey<PdfPageState>>{};
 
-class _PdfViewerState extends State<PdfViewer> with WidgetsBindingObserver {
-  late final BehaviorSubject<bool> _appBarsVisibilityController;
-  late final BehaviorSubject<Matrix4> _viewportController;
-  late final TransformationController _transformationController;
-  late final ScrollController _scrollController;
+  void updateViewport() => _viewportController.updateViewport(
+        scaleFactor: _transformationController.value.getMaxScaleOnAxis(),
+        pdfPageKeys: _pdfPageKeys,
+      );
 
-  Timer? _vieweportUpdatingTimer;
-
-  void _updateViewPort() {
-    _vieweportUpdatingTimer?.cancel();
-    _vieweportUpdatingTimer = Timer(
-      const Duration(milliseconds: 300),
-      () => _viewportController.sink.add(
-        _transformationController.value,
-      ),
-    );
-  }
+  PdfViewer({super.key});
 
   @override
-  void initState() {
-    _appBarsVisibilityController = BehaviorSubject<bool>();
-    _viewportController = BehaviorSubject<Matrix4>();
-    _transformationController = TransformationController();
-    _scrollController = ScrollController();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController =
+        ref.read(scrollControllerProvider).scrollController;
 
-    // add first value to viewportController
-    _viewportController.sink.add(
-      _transformationController.value,
-    );
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _appBarsVisibilityController.close();
-    _viewportController.close();
-    _transformationController.dispose();
-    _scrollController.dispose();
-    PdfToImage().close();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    return SafeArea(
-      child: Scaffold(
-        body: NotificationListener<ScrollEndNotification>(
-          onNotification: (notification) {
-            _updateViewPort();
-            return true;
-          },
-          child: InteractiveViewer(
-            transformationController: _transformationController,
-            onInteractionEnd: (details) {
-              _updateViewPort();
-            },
-            maxScale: 10,
-            minScale: 0.1,
-            child: DraggableScrollbar.semicircle(
-              controller: _scrollController,
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: EdgeInsets.symmetric(
-                  horizontal: (screenWidth - 396) / 2,
-                ),
-                itemCount: 10, //PdfToImage().cache.length,
-                itemBuilder: (context, index) {
-                  return PdfPageProvider(
-                    key: Key(index.toString()),
-                    viewportController: _viewportController,
-                    pageNumber: index + 1,
-                    appBarsVisibilityController: _appBarsVisibilityController,
-                  );
+    Timer(const Duration(milliseconds: 1500), () {
+      updateViewport();
+    });
+    return ProviderScope(
+      child: SafeArea(
+        child: Scaffold(
+          body: Stack(
+            children: [
+              NotificationListener<ScrollEndNotification>(
+                onNotification: (notification) {
+                  updateViewport();
+                  return true;
                 },
+                child: InteractiveViewer(
+                  transformationController: _transformationController,
+                  onInteractionEnd: (details) {
+                    updateViewport();
+                  },
+                  maxScale: 10,
+                  minScale: 0.1,
+                  child: DraggableScrollbar.semicircle(
+                    controller: scrollController,
+                    child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: PdfToImage().cache.length,
+                      itemBuilder: (context, index) {
+                        _pdfPageKeys[index + 1] = GlobalKey<PdfPageState>();
+
+                        return PdfPage(
+                          key: _pdfPageKeys[index + 1]!,
+                          pageNumber: index + 1,
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ),
-            ),
+              const SlidingAppBars()
+            ],
           ),
         ),
       ),

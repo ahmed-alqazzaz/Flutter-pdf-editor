@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
+
+import '../../providers/word_interaction_provider.dart';
 
 class WordHighlight extends ConsumerWidget {
   const WordHighlight({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wordBoundingBox = ref.watch(wordInteractionProvider).wordBoundingBox;

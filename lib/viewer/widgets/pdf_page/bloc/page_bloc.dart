@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
@@ -11,14 +12,14 @@ import '../../../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 import 'data.dart';
 
 class PageBloc extends Bloc<PageEvent, PageState> {
+  static const extractedTextScaleFactor = 4;
   PageBloc() : super(const PageStateInitial()) {
     on<PageEventUpdateDisplay>(
       (event, emit) async {
         final x = Stopwatch()..start();
-
         final mainImage = await PdfToImage().getOrUpdateImage(
           pageNumber: event.pageNumber,
-          scaleFactor: 4,
+          scaleFactor: 3,
         );
         HighResolutionPatch? highResolutionPatch;
         if (event.scaleFactor > 3) {
@@ -30,11 +31,9 @@ class PageBloc extends Bloc<PageEvent, PageState> {
             ),
             details: event.pageVisibleBounds,
           );
-
-          print("lasted: ${x.elapsedMilliseconds}");
         }
-        await TextRecognizer()
-            .processImage(InputImage.fromFilePath(mainImage.path));
+        print("lasted: ${x.elapsedMilliseconds}");
+
         emit(
           PageStateUpdatingDisplay(
             scaleFactor: event.scaleFactor,
