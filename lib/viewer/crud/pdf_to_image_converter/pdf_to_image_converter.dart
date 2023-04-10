@@ -3,12 +3,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:pdf_render/pdf_render.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf_editor/viewer/crud/text_recognizer.dart';
-import 'package:tuple/tuple.dart';
+
+import 'data.dart';
 
 class PdfToImage {
   // create a singelton
@@ -22,6 +21,7 @@ class PdfToImage {
   Map<int, PageImage> get cache => _cache;
 
   PdfDocument? _pdfDocument;
+  bool get isDocumentOpen => _pdfDocument != null ? true : false;
   String? _pdfPath;
 
   Future<PdfDocument> get pdfDocument async => await _open();
@@ -61,7 +61,7 @@ class PdfToImage {
     required final double scaleFactor,
     final bool useCache = true,
   }) async {
-    if (_pdfDocument == null) {
+    if (!isDocumentOpen) {
       throw UnimplementedError();
     }
     if (scaleFactor <= 0) {
@@ -106,14 +106,8 @@ class PdfToImage {
         final page = await document.getPage(pageNumber);
         pageImage = PageImage(
           path: file.path,
-          dimensions: Dimensions(
-            width: page.width * scaleFactor,
-            height: page.height * scaleFactor,
-          ),
-          initialDimensions: Dimensions(
-            width: page.width,
-            height: page.height,
-          ),
+          scaleFactor: scaleFactor,
+          size: Size(page.width, page.height),
         );
       }
 
@@ -129,28 +123,35 @@ class PdfToImage {
     Rect? pageCropRect,
   }) async {
     return await pdfDocument.then((document) async => document
-        .getPage(pageNumber)
-        .then((page) async => await page.render(
-              height: pageCropRect != null
-                  ? pageCropRect.height.toInt()
-                  : (page.height * scaleFactor).toInt(),
-              width: pageCropRect != null
-                  ? pageCropRect.width.toInt()
-                  : (page.width * scaleFactor).toInt(),
-              fullHeight: page.height * scaleFactor,
-              fullWidth: page.width * scaleFactor,
-              x: pageCropRect?.left.toInt() ?? 0,
-              y: pageCropRect?.top.toInt() ?? 0,
-            ))
-        .then((pdfPageImage) async =>
-            pdfPageImage.imageIfAvailable ??
-            await pdfPageImage.createImageIfNotAvailable()));
+            .getPage(pageNumber)
+            .then((page) async {
+          // pdfToScreenRatio MUST only be used when pageCropRect != null
+          late final pdfToScreenWidthRatio = page.width / pageCropRect!.width;
+          return await page.render(
+            height: pageCropRect != null
+                ? (pageCropRect.height * pdfToScreenWidthRatio).toInt()
+                : (page.height * scaleFactor).toInt(),
+            width: pageCropRect != null
+                ? page.width.toInt()
+                : (page.width * scaleFactor).toInt(),
+            fullHeight: page.height * scaleFactor,
+            fullWidth: page.width * scaleFactor,
+            x: pageCropRect != null
+                ? (pageCropRect.left * pdfToScreenWidthRatio).toInt()
+                : 0,
+            y: pageCropRect != null
+                ? (pageCropRect.top * pdfToScreenWidthRatio).toInt()
+                : 0,
+          );
+        }).then((pdfPageImage) async =>
+                pdfPageImage.imageIfAvailable ??
+                await pdfPageImage.createImageIfNotAvailable()));
   }
 
   // returns PageImage if an already existing image
   // is found in the images folder
   Future<PageImage?> loadImage({required String imagePath}) async {
-    if (_pdfDocument != false) {
+    if (!isDocumentOpen) {
       throw UnimplementedError();
     }
     // check if image exists
@@ -167,21 +168,14 @@ class PdfToImage {
       (document) async => await document.getPage(pageNumber),
     );
     return PageImage(
-      path: imagePath,
-      initialDimensions: Dimensions(
-        width: page.width,
-        height: page.height,
-      ),
-      dimensions: Dimensions(
-        width: page.width * scaleFactor,
-        height: page.height * scaleFactor,
-      ),
-    );
+        path: imagePath,
+        scaleFactor: scaleFactor,
+        size: Size(page.width, page.height));
   }
 
   Future<void> open(String pdfPath) async {
     // in case file is already open
-    if (_pdfDocument != null) {
+    if (isDocumentOpen) {
       throw UnimplementedError();
     }
     // in case file does'nt exist
@@ -193,10 +187,9 @@ class PdfToImage {
   }
 
   Future<void> close() async {
-    if (_pdfDocument == null) {
+    if (!isDocumentOpen) {
       throw UnimplementedError();
     }
-
     // TODO: remove redundant vars
     _pdfDocument = null;
     _pdfPath = null;
@@ -213,7 +206,7 @@ class PdfToImage {
   }
 
   Future<PdfDocument> _open() async {
-    if (_pdfDocument != null) {
+    if (isDocumentOpen) {
       return _pdfDocument!;
     }
     if (_pdfPath == null) {
@@ -248,20 +241,6 @@ class PdfToImage {
       },
     );
   }
-}
-
-class PageImage {
-  PageImage({
-    required this.path,
-    required this.initialDimensions,
-    required this.dimensions,
-  });
-
-  final Dimensions dimensions;
-  final Dimensions initialDimensions;
-  final String path;
-
-  double get scaleFactor => dimensions.height / initialDimensions.height;
 }
 
 const imageFolderName = "images";

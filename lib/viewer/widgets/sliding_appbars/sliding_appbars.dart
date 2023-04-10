@@ -1,21 +1,24 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:pdf_editor/viewer/providers/appbars_visibility_provider.dart';
 import 'package:pdf_editor/viewer/widgets/sliding_appbars/appbars/top/top_appbar.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'generic_sliding_appbar.dart';
 
-class SlidingAppBars extends StatefulWidget {
+class SlidingAppBars extends ConsumerStatefulWidget {
   const SlidingAppBars({
     super.key,
-    required this.showAppbarController,
   });
-  final BehaviorSubject<bool> showAppbarController;
+
   @override
-  State<SlidingAppBars> createState() => _SlidingAppBarsState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _SlidingAppBarsState();
 }
 
-class _SlidingAppBarsState extends State<SlidingAppBars>
+class _SlidingAppBarsState extends ConsumerState<ConsumerStatefulWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
@@ -48,37 +51,35 @@ class _SlidingAppBarsState extends State<SlidingAppBars>
 
   @override
   Widget build(BuildContext context) {
+    final areAppbarsVisible =
+        ref.watch(appbarVisibilityProvider).areAppbarsVisibile;
+
+    if (areAppbarsVisible) {
+      _controller.reverse();
+
+      // show system botom UI
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.bottom],
+      );
+    } else {
+      _controller.forward();
+
+      // hide system bottom UI
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [],
+      );
+    }
     return Column(
       children: [
-        StreamBuilder<bool>(
-            stream: widget.showAppbarController.stream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final isVisible = snapshot.data!;
-                if (isVisible) {
-                  // show system botom UI
-                  SystemChrome.setEnabledSystemUIMode(
-                    SystemUiMode.manual,
-                    overlays: [SystemUiOverlay.bottom],
-                  );
-                } else {
-                  // hide system bottom UI
-                  SystemChrome.setEnabledSystemUIMode(
-                    SystemUiMode.manual,
-                    overlays: [],
-                  );
-                }
-                return SlidingAppBar(
-                  slidingOffset: const Offset(0, -1),
-                  controller: _controller,
-                  visible: isVisible,
-                  child: topAppbar(1),
-                );
-              } else {
-                return Container();
-              }
-            }),
-        const Spacer(flex: 7)
+        SlidingAppBar(
+          slidingOffset: const Offset(0, -1),
+          controller: _controller,
+          visibility: areAppbarsVisible,
+          child: topAppbar(1),
+        ),
+        const Spacer(flex: 7),
       ],
     );
   }
