@@ -13,12 +13,16 @@ abstract class PageState extends Equatable {
   List<Object?> get props => [];
 }
 
-class PageStateInitial extends PageState {
-  const PageStateInitial();
+class PageStateDisplayBlank extends PageState {
+  const PageStateDisplayBlank();
 }
 
-class PageStateUpdatingDisplay extends PageState {
-  const PageStateUpdatingDisplay({
+class PageStateDisplayCache extends PageState {
+  const PageStateDisplayCache();
+}
+
+class PageStateDisplayMain extends PageState {
+  const PageStateDisplayMain({
     required this.mainImage,
     required this.scaleFactor,
     this.highResolutionPatch,
@@ -31,6 +35,10 @@ class PageStateUpdatingDisplay extends PageState {
   final HighResolutionPatch? highResolutionPatch;
 
   @override
-  List<Object?> get props =>
-      [extractedText, scaleFactor, mainImage, highResolutionPatch];
+  List<Object?> get props => [
+        extractedText,
+        scaleFactor,
+        mainImage,
+        highResolutionPatch,
+      ];
 }

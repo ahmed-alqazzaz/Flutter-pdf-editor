@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -12,15 +13,21 @@ import '../../../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 import 'data.dart';
 
 class PageBloc extends Bloc<PageEvent, PageState> {
-  final PdfToImage pdfToImageConverter;
-  static const extractedTextScaleFactor = 4;
-  PageBloc(this.pdfToImageConverter) : super(const PageStateInitial()) {
-    on<PageEventUpdateDisplay>(
+  PageBloc(this.pdfToImageConverter) : super(const PageStateDisplayBlank()) {
+    _cacheTimer = Timer(_displayingBlankDuration, () {
+      add(const PageEventDisplayCache());
+    });
+
+    on<PageEventDisplayCache>(
+      (event, emit) => emit(const PageStateDisplayCache()),
+    );
+
+    on<PageEventDisplayMain>(
       (event, emit) async {
-        final x = Stopwatch()..start();
+        final timer = Stopwatch()..start();
         final mainImage = await pdfToImageConverter.getOrUpdateImage(
           pageNumber: event.pageNumber,
-          scaleFactor: 3,
+          scaleFactor: extractedTextScaleFactor,
         );
         HighResolutionPatch? highResolutionPatch;
         if (event.scaleFactor > 3) {
@@ -33,10 +40,10 @@ class PageBloc extends Bloc<PageEvent, PageState> {
             details: event.pageVisibleBounds,
           );
         }
-        print("lasted: ${x.elapsedMilliseconds}");
+        log("lasted: ${timer.elapsedMilliseconds}");
 
         emit(
-          PageStateUpdatingDisplay(
+          PageStateDisplayMain(
             scaleFactor: event.scaleFactor,
             mainImage: await decodeImageFromList(
               File(mainImage.path).readAsBytesSync(),
@@ -45,14 +52,28 @@ class PageBloc extends Bloc<PageEvent, PageState> {
             // generate wordcollection only when scaleFactor is 4 or above
             // and it has not been generated before
 
-            extractedText: mainImage.scaleFactor >= 4
+            extractedText: mainImage.scaleFactor >= extractedTextScaleFactor
                 ? event.extractedText ??
-                    await TextRecognizer()
-                        .processImage(InputImage.fromFilePath(mainImage.path))
+                    await TextRecognizer().processImage(
+                      InputImage.fromFilePath(mainImage.path),
+                    )
                 : null,
           ),
         );
       },
     );
+  }
+
+  static const double extractedTextScaleFactor = 4.0;
+  static const Duration _displayingBlankDuration = Duration(milliseconds: 300);
+
+  final PdfToImage pdfToImageConverter;
+
+  Timer? _cacheTimer;
+
+  @override
+  Future<void> close() {
+    _cacheTimer?.cancel();
+    return super.close();
   }
 }

@@ -16,13 +16,14 @@ import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 import '../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 
 import '../utils/viewport_controller.dart';
+import '../widgets/pdf_page/bloc/page_bloc.dart';
 import '../widgets/sliding_appbars/sliding_appbars.dart';
 import 'package:bloc/bloc.dart';
 
 class PdfViewer extends ConsumerWidget {
   late final _transformationController = TransformationController();
   late final _viewportController = ViewportController();
-  final _pdfPageKeys = <int, GlobalKey<PdfPageState>>{};
+  final _pdfPageKeys = <int, GlobalKey<PdfPageViewState>>{};
 
   void updateViewport() => _viewportController.updateViewport(
         scaleFactor: _transformationController.value.getMaxScaleOnAxis(),
@@ -58,15 +59,24 @@ class PdfViewer extends ConsumerWidget {
                   minScale: 0.1,
                   child: DraggableScrollbar.semicircle(
                     controller: scrollController,
-                    child: ListView.builder(
+                    child: ListView.separated(
+                      separatorBuilder: (context, index) {
+                        return const Divider(
+                          height: 1,
+                          color: Color.fromRGBO(186, 186, 186, 100),
+                        );
+                      },
                       controller: scrollController,
                       itemCount: pdfToImageConverter.cache.length,
                       itemBuilder: (context, index) {
-                        _pdfPageKeys[index + 1] = GlobalKey<PdfPageState>();
-
-                        return PdfPage(
-                          key: _pdfPageKeys[index + 1]!,
-                          pageNumber: index + 1,
+                        _pdfPageKeys[index + 1] = GlobalKey<PdfPageViewState>();
+                        return BlocProvider(
+                          create: (context) => PageBloc(pdfToImageConverter),
+                          child: PdfPageView(
+                            key: _pdfPageKeys[index + 1]!,
+                            pageNumber: index + 1,
+                            pdfToImageConverter: pdfToImageConverter,
+                          ),
                         );
                       },
                     ),

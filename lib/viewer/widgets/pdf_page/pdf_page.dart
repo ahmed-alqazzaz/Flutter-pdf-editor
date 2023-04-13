@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'dart:io';
 
@@ -11,34 +12,39 @@ import 'package:pdf_editor/viewer/widgets/pdf_page/page_stack.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page_gesture_detector/pdf_page_gesture_detector.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/word_highlight.dart';
 
-import 'package:flutter_mupdf/flutter_mupdf.dart' as mu;
 import 'package:visibility_detector/visibility_detector.dart';
 
-import '../../../bloc/app_bloc.dart';
 import '../../providers/word_interaction_provider.dart';
 import 'bloc/page_bloc.dart';
 import 'bloc/page_states.dart';
 import '../../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 
-class PdfPage extends StatefulWidget {
-  const PdfPage({
+class PdfPageView extends StatefulWidget {
+  const PdfPageView({
     super.key,
     required this.pageNumber,
+    required this.pdfToImageConverter,
   });
 
   final int pageNumber;
-
+  final PdfToImage pdfToImageConverter;
   @override
-  State<PdfPage> createState() => PdfPageState();
+  State<PdfPageView> createState() => PdfPageViewState();
 }
 
-class PdfPageState extends State<PdfPage> {
-  PdfToImage get pdfToImageConverter => context.getArgument<PdfToImage>()!;
-  PageBloc? bloc;
+class PdfPageViewState extends State<PdfPageView> {
+  late final PageBloc bloc;
+
   Timer? visibilityChangeTimer;
   Rect? pageVisibleBounds;
 
-  void onPageVisibilityChanges({
+  @override
+  void didChangeDependencies() {
+    bloc = context.read<PageBloc>();
+    super.didChangeDependencies();
+  }
+
+  void _onPageVisibilityChanges({
     required BuildContext context,
     required VisibilityInfo details,
     required double width,
@@ -58,20 +64,19 @@ class PdfPageState extends State<PdfPage> {
 
   @override
   void dispose() {
-    pdfToImageConverter.resetCache();
+    bloc?.close();
+    widget.pdfToImageConverter.resetCache();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final pdfPage = pdfToImageConverter.cache[widget.pageNumber];
-    if (pdfPage == null) {
-      return Container();
-    }
-    final pdfPageSize = pdfPage.size;
+    final pdfPage = widget.pdfToImageConverter.cache[widget.pageNumber];
+    final pdfPageSize = widget.pdfToImageConverter.pageSize;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenToPdfWidthRatio = screenWidth / pdfPageSize.width;
     final height = pdfPageSize.height * screenToPdfWidthRatio;
+
     return ProviderScope(
       overrides: [
         // Override is necessary to avoid overlap with
@@ -80,30 +85,100 @@ class PdfPageState extends State<PdfPage> {
           (ref) => WordInteractionModel(),
         )
       ],
-      child: BlocProvider(
-        create: (context) => PageBloc(pdfToImageConverter),
-        child: BlocBuilder<PageBloc, PageState>(
-          builder: (context, state) {
-            bloc = context.read<PageBloc>();
-            return PdfPageGestureDetector(
-              scaleFactor:
-                  state is PageStateUpdatingDisplay ? state.scaleFactor : 1,
-              extractedText: state is PageStateUpdatingDisplay
-                  ? state.extractedText
-                  : null,
-              pdfPageWidth: pdfPageSize.width,
-              child: PageStack(
-                key: UniqueKey(),
-                state: state,
-                onVisibilityChanged: onPageVisibilityChanges,
-                pageNumber: widget.pageNumber,
-                size: Size(screenWidth, height),
-                pdfToImageConverter: pdfToImageConverter,
-              ),
+      child: BlocBuilder<PageBloc, PageState>(
+        builder: (context, state) {
+          if (pdfPage == null || state is PageStateDisplayBlank) {
+            return SizedBox(
+              width: screenWidth,
+              height: height,
             );
-          },
-        ),
+          }
+          return PdfPageGestureDetector(
+            scaleFactor: state is PageStateDisplayMain ? state.scaleFactor : 1,
+            extractedText:
+                state is PageStateDisplayMain ? state.extractedText : null,
+            pdfPageWidth: pdfPageSize.width,
+            child: // transition from cached to main image
+                Stack(
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 800),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      alwaysIncludeSemantics: true,
+                      opacity: Tween(begin: 0.7, end: 1.0).animate(animation),
+                      child: child,
+                    );
+                  },
+                  child: VisibilityDetector(
+                    key: UniqueKey(),
+                    onVisibilityChanged: (info) => _onPageVisibilityChanges(
+                      context: context,
+                      details: info,
+                      width: screenWidth,
+                    ),
+                    child: state is PageStateDisplayMain
+                        ? Stack(
+                            children: [
+                              RawImage(
+                                image: state.mainImage,
+                                fit: BoxFit.fill,
+                                width: screenWidth,
+                                height: height,
+                                key: UniqueKey(),
+                              ),
+                              if (state.highResolutionPatch != null) ...[
+                                Positioned(
+                                  width:
+                                      state.highResolutionPatch!.details.width /
+                                          state.scaleFactor,
+                                  height: state
+                                          .highResolutionPatch!.details.height /
+                                      state.scaleFactor,
+                                  left:
+                                      state.highResolutionPatch!.details.left /
+                                          state.scaleFactor,
+                                  top: state.highResolutionPatch!.details.top /
+                                      state.scaleFactor,
+                                  child: RawImage(
+                                    image: state.highResolutionPatch!.image,
+                                    fit: BoxFit.fill,
+                                    width: state
+                                        .highResolutionPatch!.details.width,
+                                    height: state
+                                        .highResolutionPatch!.details.height,
+                                    key: UniqueKey(),
+                                  ),
+                                )
+                              ],
+                            ],
+                          )
+                        : // use cached image
+                        Image.file(
+                            File(widget.pdfToImageConverter
+                                .cache[widget.pageNumber]!.path),
+                            fit: BoxFit.fill,
+                            width: screenWidth,
+                            height: height,
+                            key: UniqueKey(),
+                          ),
+                  ),
+                ),
+                const WordHighlight(),
+              ],
+            ),
+          );
+        },
       ),
     );
+  }
+}
+
+class BlankPageView extends StatelessWidget {
+  const BlankPageView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
   }
 }

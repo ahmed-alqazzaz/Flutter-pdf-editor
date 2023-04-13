@@ -6,12 +6,12 @@ abstract class PageEvent {
   const PageEvent();
 }
 
-class PageEventInitial extends PageEvent {
-  const PageEventInitial();
+class PageEventDisplayCache extends PageEvent {
+  const PageEventDisplayCache();
 }
 
-class PageEventUpdateDisplay extends PageEvent {
-  const PageEventUpdateDisplay({
+class PageEventDisplayMain extends PageEvent {
+  const PageEventDisplayMain({
     required this.pageNumber,
     required this.scaleFactor,
     required this.pageVisibleBounds,
