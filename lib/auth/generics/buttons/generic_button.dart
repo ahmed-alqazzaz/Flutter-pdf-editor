@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../generic_auth_view/generic_auth_view.dart';
-
 class GenericButton extends StatelessWidget {
   const GenericButton({
     super.key,

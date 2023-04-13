@@ -4,15 +4,20 @@ import 'dart:developer';
 import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pdf_editor/bloc/app_bloc.dart';
+import 'package:pdf_editor/bloc/app_states.dart';
 
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pdf_editor/viewer/providers/scroll_controller_provider.dart';
+import 'package:pdf_editor/viewer/utils/get_args.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 
 import '../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 
 import '../utils/viewport_controller.dart';
 import '../widgets/sliding_appbars/sliding_appbars.dart';
+import 'package:bloc/bloc.dart';
 
 class PdfViewer extends ConsumerWidget {
   late final _transformationController = TransformationController();
@@ -28,9 +33,9 @@ class PdfViewer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pdfToImageConverter = context.getArgument<PdfToImage>()!;
     final scrollController =
         ref.read(scrollControllerProvider).scrollController;
-
     Timer(const Duration(milliseconds: 1500), () {
       updateViewport();
     });
@@ -55,7 +60,7 @@ class PdfViewer extends ConsumerWidget {
                     controller: scrollController,
                     child: ListView.builder(
                       controller: scrollController,
-                      itemCount: PdfToImage().cache.length,
+                      itemCount: pdfToImageConverter.cache.length,
                       itemBuilder: (context, index) {
                         _pdfPageKeys[index + 1] = GlobalKey<PdfPageState>();
 

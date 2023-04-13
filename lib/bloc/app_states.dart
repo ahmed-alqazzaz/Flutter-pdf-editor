@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pdf_editor/viewer/crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 
 abstract class AppState extends Equatable {
   const AppState();
@@ -11,5 +12,8 @@ class AppStateInitial extends AppState {
 }
 
 class AppStateDisplayingPdfViewer extends AppState {
-  const AppStateDisplayingPdfViewer();
+  const AppStateDisplayingPdfViewer(this.pdfToTmageConverter);
+  final PdfToImage pdfToTmageConverter;
+  @override
+  List<Object?> get props => [pdfToTmageConverter];
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -10,21 +11,25 @@ import 'package:path_provider/path_provider.dart';
 import 'data.dart';
 
 class PdfToImage {
-  // create a singelton
-  factory PdfToImage() => _shared;
-  PdfToImage._sharedInstance();
-  static final PdfToImage _shared = PdfToImage._sharedInstance();
+  PdfToImage._(this._documentManager);
 
   // cache is meant to store:
   // low resolution images(scale factor =< 3 ) when the viewer is initialized
   final _cache = <int, PageImage>{};
   Map<int, PageImage> get cache => _cache;
 
-  PdfDocument? _pdfDocument;
-  bool get isDocumentOpen => _pdfDocument != null ? true : false;
-  String? _pdfPath;
+  final PdfDocumentManager _documentManager;
 
-  Future<PdfDocument> get pdfDocument async => await _open();
+  static Future<PdfToImage> initialize(String pdfPath) async {
+    final converter = PdfToImage._(await PdfDocumentManager.open(pdfPath))
+      ..path = pdfPath;
+    await converter._cacheAll();
+    return converter;
+  }
+
+  PdfDocument get _document => _documentManager.document;
+
+  String? path;
 
   // this is meant to be executed after the page is disposed
   void resetCache() {
@@ -42,17 +47,16 @@ class PdfToImage {
   }
 
   // this is meant to be used during the viewer initialazation
-  Future<void> cacheAll() async {
+  Future<void> _cacheAll() async {
     final x = Stopwatch()..start();
-    final document = await pdfDocument;
-    for (int pageNumber = 1; pageNumber <= document.pageCount; pageNumber++) {
+    for (int pageNumber = 1; pageNumber <= _document.pageCount; pageNumber++) {
       await getOrUpdateImage(
         pageNumber: pageNumber,
         scaleFactor: 1,
         useCache: false,
       );
     }
-    print("cached in ${x.elapsedMilliseconds}");
+    log("cached in ${x.elapsedMilliseconds}");
   }
 
   // this is intended to return full image with scale factor < 3
@@ -61,14 +65,11 @@ class PdfToImage {
     required final double scaleFactor,
     final bool useCache = true,
   }) async {
-    if (!isDocumentOpen) {
-      throw UnimplementedError();
-    }
     if (scaleFactor <= 0) {
       throw ArgumentError("scale must be a positive integer");
     }
-    final document = await pdfDocument;
-    if (pageNumber > document.pageCount || pageNumber <= 0) {
+
+    if (pageNumber > _document.pageCount || pageNumber <= 0) {
       throw UnimplementedError();
     }
 
@@ -103,7 +104,7 @@ class PdfToImage {
         final file = File(imagePath);
         file.writeAsBytesSync(image);
 
-        final page = await document.getPage(pageNumber);
+        final page = await _document.getPage(pageNumber);
         pageImage = PageImage(
           path: file.path,
           scaleFactor: scaleFactor,
@@ -122,38 +123,35 @@ class PdfToImage {
     required double scaleFactor,
     Rect? pageCropRect,
   }) async {
-    return await pdfDocument.then((document) async => document
-            .getPage(pageNumber)
-            .then((page) async {
-          // pdfToScreenRatio MUST only be used when pageCropRect != null
-          late final pdfToScreenWidthRatio = page.width / pageCropRect!.width;
-          return await page.render(
-            height: pageCropRect != null
-                ? (pageCropRect.height * pdfToScreenWidthRatio).toInt()
-                : (page.height * scaleFactor).toInt(),
-            width: pageCropRect != null
-                ? page.width.toInt()
-                : (page.width * scaleFactor).toInt(),
-            fullHeight: page.height * scaleFactor,
-            fullWidth: page.width * scaleFactor,
-            x: pageCropRect != null
-                ? (pageCropRect.left * pdfToScreenWidthRatio).toInt()
-                : 0,
-            y: pageCropRect != null
-                ? (pageCropRect.top * pdfToScreenWidthRatio).toInt()
-                : 0,
-          );
-        }).then((pdfPageImage) async =>
-                pdfPageImage.imageIfAvailable ??
-                await pdfPageImage.createImageIfNotAvailable()));
+    return _document.getPage(pageNumber).then((page) async {
+      // pdfToScreenRatio MUST only be used when pageCropRect != null
+      late final pdfToScreenWidthRatio = page.width / pageCropRect!.width;
+      return await page.render(
+        height: pageCropRect != null
+            ? (pageCropRect.height * pdfToScreenWidthRatio).toInt()
+            : (page.height * scaleFactor).toInt(),
+        width: pageCropRect != null
+            ? page.width.toInt()
+            : (page.width * scaleFactor).toInt(),
+        fullHeight: page.height * scaleFactor,
+        fullWidth: page.width * scaleFactor,
+        x: pageCropRect != null
+            ? (pageCropRect.left * pdfToScreenWidthRatio).toInt()
+            : 0,
+        y: pageCropRect != null
+            ? (pageCropRect.top * pdfToScreenWidthRatio).toInt()
+            : 0,
+      );
+    }).then(
+      (pdfPageImage) async =>
+          pdfPageImage.imageIfAvailable ??
+          await pdfPageImage.createImageIfNotAvailable(),
+    );
   }
 
   // returns PageImage if an already existing image
   // is found in the images folder
   Future<PageImage?> loadImage({required String imagePath}) async {
-    if (!isDocumentOpen) {
-      throw UnimplementedError();
-    }
     // check if image exists
     if (await File(imagePath).exists() != true) {
       return null;
@@ -164,61 +162,25 @@ class PdfToImage {
         int.parse(imagePath.split("/").reversed.toList()[0].split('').first);
     final scaleFactor = double.parse(imagePath.split("/").reversed.toList()[1]);
 
-    final page = await pdfDocument.then(
-      (document) async => await document.getPage(pageNumber),
-    );
+    final page = await _document.getPage(pageNumber);
     return PageImage(
-        path: imagePath,
-        scaleFactor: scaleFactor,
-        size: Size(page.width, page.height));
+      path: imagePath,
+      scaleFactor: scaleFactor,
+      size: Size(page.width, page.height),
+    );
   }
 
-  Future<void> open(String pdfPath) async {
-    // in case file is already open
-    if (isDocumentOpen) {
-      throw UnimplementedError();
-    }
-    // in case file does'nt exist
-    else if (!(await File(pdfPath).exists())) {
-      throw UnimplementedError();
-    }
-    _pdfPath = pdfPath;
-    await _open();
-  }
-
-  Future<void> close() async {
-    if (!isDocumentOpen) {
-      throw UnimplementedError();
-    }
-    // TODO: remove redundant vars
-    _pdfDocument = null;
-    _pdfPath = null;
-    _cache.clear();
-  }
+  Future<void> close() async => _documentManager.close();
 
   Future<String> _createImagePath({
     required int pageNumber,
     required double scaleFactor,
   }) async {
-    final pdfFileName = _pdfPath!.split("/").last.split(".").first;
-    final imageFolderPath = await _getImageDirectory(pdfFileName, scaleFactor);
+    final imageFolderPath = await _getImageDirectory(
+      _documentManager.fileName,
+      scaleFactor,
+    );
     return '$imageFolderPath/$pageNumber.jpg';
-  }
-
-  Future<PdfDocument> _open() async {
-    if (isDocumentOpen) {
-      return _pdfDocument!;
-    }
-    if (_pdfPath == null) {
-      throw UnimplementedError();
-    }
-    try {
-      // Update _PdfDocument Value
-      _pdfDocument = await PdfDocument.openFile(_pdfPath!);
-      return _pdfDocument!;
-    } catch (e) {
-      throw UnimplementedError(e.toString());
-    }
   }
 
   // return path to temporary folder that contain images
@@ -244,3 +206,22 @@ class PdfToImage {
 }
 
 const imageFolderName = "images";
+
+class PdfDocumentManager {
+  PdfDocumentManager._(this.document, this.fileName);
+  final PdfDocument document;
+  final String fileName;
+
+  static Future<PdfDocumentManager> open(final String pdfPath) async {
+    if (!(await File(pdfPath).exists())) {
+      throw UnimplementedError();
+    }
+    final pdfName = pdfPath.split("/").last.split(".").first;
+    return PdfDocumentManager._(
+      await PdfDocument.openFile(pdfPath),
+      pdfName,
+    );
+  }
+
+  Future<void> close() async => await document.dispose();
+}

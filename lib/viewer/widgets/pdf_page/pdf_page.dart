@@ -5,12 +5,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pdf_editor/viewer/utils/get_args.dart';
+import 'package:pdf_editor/viewer/widgets/pdf_page/page_stack.dart';
 
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page_gesture_detector/pdf_page_gesture_detector.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/word_highlight.dart';
 
+import 'package:flutter_mupdf/flutter_mupdf.dart' as mu;
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../../bloc/app_bloc.dart';
 import '../../providers/word_interaction_provider.dart';
 import 'bloc/page_bloc.dart';
 import 'bloc/page_states.dart';
@@ -29,6 +33,7 @@ class PdfPage extends StatefulWidget {
 }
 
 class PdfPageState extends State<PdfPage> {
+  PdfToImage get pdfToImageConverter => context.getArgument<PdfToImage>()!;
   PageBloc? bloc;
   Timer? visibilityChangeTimer;
   Rect? pageVisibleBounds;
@@ -53,13 +58,13 @@ class PdfPageState extends State<PdfPage> {
 
   @override
   void dispose() {
-    PdfToImage().resetCache();
+    pdfToImageConverter.resetCache();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final pdfPage = PdfToImage().cache[widget.pageNumber];
+    final pdfPage = pdfToImageConverter.cache[widget.pageNumber];
     if (pdfPage == null) {
       return Container();
     }
@@ -76,7 +81,7 @@ class PdfPageState extends State<PdfPage> {
         )
       ],
       child: BlocProvider(
-        create: (context) => PageBloc(),
+        create: (context) => PageBloc(pdfToImageConverter),
         child: BlocBuilder<PageBloc, PageState>(
           builder: (context, state) {
             bloc = context.read<PageBloc>();
@@ -93,95 +98,12 @@ class PdfPageState extends State<PdfPage> {
                 onVisibilityChanged: onPageVisibilityChanges,
                 pageNumber: widget.pageNumber,
                 size: Size(screenWidth, height),
+                pdfToImageConverter: pdfToImageConverter,
               ),
             );
           },
         ),
       ),
-    );
-  }
-}
-
-class PageStack extends StatelessWidget {
-  const PageStack({
-    super.key,
-    required this.state,
-    required this.onVisibilityChanged,
-    required this.size,
-    required this.pageNumber,
-  });
-
-  final dynamic state;
-  final void Function(
-      {required VisibilityInfo details,
-      required BuildContext context,
-      required double width}) onVisibilityChanged;
-  final Size size;
-  final int pageNumber;
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // transition between old lower resolution images to higher quality ones
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 800),
-          transitionBuilder: (child, animation) {
-            return FadeTransition(
-              alwaysIncludeSemantics: true,
-              opacity: Tween(begin: 0.7, end: 1.0).animate(animation),
-              child: child,
-            );
-          },
-          child: VisibilityDetector(
-            key: UniqueKey(),
-            onVisibilityChanged: (info) => onVisibilityChanged(
-              context: context,
-              details: info,
-              width: size.width,
-            ),
-            child: state is PageStateUpdatingDisplay
-                ? Stack(
-                    children: [
-                      RawImage(
-                        image: state.mainImage,
-                        fit: BoxFit.fill,
-                        width: size.width,
-                        height: size.height,
-                        key: UniqueKey(),
-                      ),
-                      if (state.highResolutionPatch != null) ...[
-                        Positioned(
-                          width: state.highResolutionPatch!.details.width /
-                              state.scaleFactor,
-                          height: state.highResolutionPatch!.details.height /
-                              state.scaleFactor,
-                          left: state.highResolutionPatch!.details.left /
-                              state.scaleFactor,
-                          top: state.highResolutionPatch!.details.top /
-                              state.scaleFactor,
-                          child: RawImage(
-                            image: state.highResolutionPatch!.image,
-                            fit: BoxFit.fill,
-                            width: state.highResolutionPatch!.details.width,
-                            height: state.highResolutionPatch!.details.height,
-                            key: UniqueKey(),
-                          ),
-                        )
-                      ],
-                    ],
-                  )
-                : // use cached image
-                Image.file(
-                    File(PdfToImage().cache[pageNumber]!.path),
-                    fit: BoxFit.fill,
-                    width: size.width,
-                    height: size.height,
-                    key: UniqueKey(),
-                  ),
-          ),
-        ),
-        const WordHighlight(),
-      ],
     );
   }
 }

@@ -12,19 +12,20 @@ import '../../../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 import 'data.dart';
 
 class PageBloc extends Bloc<PageEvent, PageState> {
+  final PdfToImage pdfToImageConverter;
   static const extractedTextScaleFactor = 4;
-  PageBloc() : super(const PageStateInitial()) {
+  PageBloc(this.pdfToImageConverter) : super(const PageStateInitial()) {
     on<PageEventUpdateDisplay>(
       (event, emit) async {
         final x = Stopwatch()..start();
-        final mainImage = await PdfToImage().getOrUpdateImage(
+        final mainImage = await pdfToImageConverter.getOrUpdateImage(
           pageNumber: event.pageNumber,
           scaleFactor: 3,
         );
         HighResolutionPatch? highResolutionPatch;
         if (event.scaleFactor > 3) {
           highResolutionPatch = HighResolutionPatch(
-            image: await PdfToImage().createImage(
+            image: await pdfToImageConverter.createImage(
               pageNumber: event.pageNumber,
               scaleFactor: event.scaleFactor,
               pageCropRect: event.pageVisibleBounds,

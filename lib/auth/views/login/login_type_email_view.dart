@@ -14,6 +14,7 @@ class LoginTypeEmailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GenericAuthView(
+      key: UniqueKey(),
       onProceed: () async {
         context.read<AuthBloc>().add(
               AuthEventTypePassword(
