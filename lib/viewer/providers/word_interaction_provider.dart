@@ -6,7 +6,7 @@ class WordInteractionModel extends ChangeNotifier {
   PersistentBottomSheetController? _bottomSheetController;
 
   Rect? get wordBoundingBox => _wordBoundingBox;
-  bool get isThereTappedWord => _wordBoundingBox != null;
+  bool get isExplanationModalPresent => _bottomSheetController != null;
 
   void updateTappedWord({
     required final Rect wordBoundingBox,

@@ -41,7 +41,7 @@ class _ExpansionPanelBuilderState extends State<ExpansionPanelBuilder> {
             ExpansionPanel(
               headerBuilder: (context, isExpanded) => widget.children[i].header,
               isExpanded: () {
-                // in case all widgets are
+                // in case all panels are
                 // unexpanded, expand first panel
                 if (i == 0 && !_isExpanded.contains(true)) {
                   return true;

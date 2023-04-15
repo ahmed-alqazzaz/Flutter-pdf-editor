@@ -4,7 +4,7 @@ import 'package:pdf_editor/viewer/crud/pdf_to_image_converter/pdf_to_image_conve
 abstract class AppState extends Equatable {
   const AppState();
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class AppStateInitial extends AppState {
@@ -12,8 +12,13 @@ class AppStateInitial extends AppState {
 }
 
 class AppStateDisplayingPdfViewer extends AppState {
-  const AppStateDisplayingPdfViewer(this.pdfToTmageConverter);
-  final PdfToImage pdfToTmageConverter;
+  const AppStateDisplayingPdfViewer({
+    this.pdfToTmageConverter,
+    required this.isLoading,
+  });
+  final bool isLoading;
+  final PdfToImage? pdfToTmageConverter;
+
   @override
-  List<Object?> get props => [pdfToTmageConverter];
+  List<Object> get props => [isLoading];
 }

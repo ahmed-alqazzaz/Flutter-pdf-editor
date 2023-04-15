@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pdf_editor/viewer/utils/get_args.dart';
-import 'package:pdf_editor/viewer/widgets/pdf_page/page_stack.dart';
 
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page_gesture_detector/pdf_page_gesture_detector.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/word_highlight.dart';
@@ -33,7 +30,7 @@ class PdfPageView extends StatefulWidget {
 }
 
 class PdfPageViewState extends State<PdfPageView> {
-  late final PageBloc bloc;
+  PageBloc? bloc;
 
   Timer? visibilityChangeTimer;
   Rect? pageVisibleBounds;
@@ -171,14 +168,5 @@ class PdfPageViewState extends State<PdfPageView> {
         },
       ),
     );
-  }
-}
-
-class BlankPageView extends StatelessWidget {
-  const BlankPageView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
   }
 }

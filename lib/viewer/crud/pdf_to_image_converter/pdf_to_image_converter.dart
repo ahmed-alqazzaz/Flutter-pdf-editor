@@ -1,17 +1,20 @@
 import 'dart:async';
-import 'dart:developer';
+import 'dart:developer' as dev;
 
 import 'dart:io';
+
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf_render/pdf_render.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'data.dart';
 
 class PdfToImage {
-  PdfToImage._(this._documentManager);
+  PdfToImage._(this._documentManager, this.pageSize);
 
   // cache is meant to store:
   // low resolution images(scale factor =< 3 ) when the viewer is initialized
@@ -19,17 +22,20 @@ class PdfToImage {
   Map<int, PageImage> get cache => _cache;
 
   final PdfDocumentManager _documentManager;
+  final Size pageSize;
 
-  static Future<PdfToImage> initialize(String pdfPath) async {
-    final converter = PdfToImage._(await PdfDocumentManager.open(pdfPath))
-      ..path = pdfPath;
+  static Future<PdfToImage> open(String pdfPath) async {
+    final documentManager = await PdfDocumentManager.open(pdfPath);
+    final firstPageSize = await documentManager.document.getPage(1).then(
+          (page) => Size(page.width, page.height),
+        );
+
+    final converter = PdfToImage._(documentManager, firstPageSize);
     await converter._cacheAll();
     return converter;
   }
 
   PdfDocument get _document => _documentManager.document;
-
-  String? path;
 
   // this is meant to be executed after the page is disposed
   void resetCache() {
@@ -48,15 +54,15 @@ class PdfToImage {
 
   // this is meant to be used during the viewer initialazation
   Future<void> _cacheAll() async {
-    final x = Stopwatch()..start();
+    final timer = Stopwatch()..start();
     for (int pageNumber = 1; pageNumber <= _document.pageCount; pageNumber++) {
       await getOrUpdateImage(
         pageNumber: pageNumber,
         scaleFactor: 1,
-        useCache: false,
       );
     }
-    log("cached in ${x.elapsedMilliseconds}");
+
+    dev.log("cached in ${timer.elapsedMilliseconds}");
   }
 
   // this is intended to return full image with scale factor < 3
@@ -85,7 +91,6 @@ class PdfToImage {
         pageNumber: pageNumber,
         scaleFactor: scaleFactor,
       );
-
       PageImage? pageImage = await loadImage(
         imagePath: imagePath,
       );
@@ -157,16 +162,12 @@ class PdfToImage {
       return null;
     }
 
-    // extract scale factor and page number from the path
-    final pageNumber =
-        int.parse(imagePath.split("/").reversed.toList()[0].split('').first);
+    // extract scale factor from the path
     final scaleFactor = double.parse(imagePath.split("/").reversed.toList()[1]);
-
-    final page = await _document.getPage(pageNumber);
     return PageImage(
       path: imagePath,
       scaleFactor: scaleFactor,
-      size: Size(page.width, page.height),
+      size: pageSize,
     );
   }
 

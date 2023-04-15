@@ -6,13 +6,12 @@ class SlidingAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.child,
     required this.controller,
-    required this.visibility,
     required this.slidingOffset,
   });
 
   final PreferredSizeWidget child;
   final AnimationController controller;
-  final bool visibility;
+
   final Offset slidingOffset;
 
   @override

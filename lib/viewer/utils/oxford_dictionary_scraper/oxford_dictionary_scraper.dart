@@ -12,12 +12,11 @@ class OxfordDictionaryScraper {
   const OxfordDictionaryScraper({
     required this.lemmatizer,
     required this.client,
-    required this.soupParser,
   });
 
   final OxfordDictionaryApiClient client;
-  final OxfordDictionarySoupParser soupParser;
   final Lemmatizer lemmatizer;
+  final soupParser = const OxfordDictionarySoupParser();
 
   Future<List<Lexicon>> search(String word) async {
     // create a list of possible lemmas

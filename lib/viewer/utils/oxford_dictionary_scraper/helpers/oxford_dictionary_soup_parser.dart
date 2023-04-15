@@ -5,6 +5,7 @@ import '../data/data.dart';
 
 @immutable
 class OxfordDictionarySoupParser {
+  const OxfordDictionarySoupParser();
   Lexicon extractLexicon(BeautifulSoup sp) {
     final idiomElements = sp.findAll("span", class_: "idm-g");
     final phrasalVerbElements = sp.find('ul', class_: 'pvrefs')?.findAll('li');

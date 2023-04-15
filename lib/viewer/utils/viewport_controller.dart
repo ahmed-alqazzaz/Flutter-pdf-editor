@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/widgets.dart';
 import '../widgets/pdf_page/bloc/page_events.dart';
 import '../widgets/pdf_page/bloc/page_states.dart';
@@ -10,12 +11,13 @@ class ViewportController {
 
   void updateViewport({
     required final double scaleFactor,
-    required final Map<int, GlobalKey<PdfPageState>> pdfPageKeys,
+    required final Map<int, GlobalKey<PdfPageViewState>> pdfPageKeys,
   }) {
     _vieweportUpdatingTimer?.cancel();
     _vieweportUpdatingTimer = Timer(
       const Duration(milliseconds: 300),
       () {
+        log(pdfPageKeys.length.toString());
         for (int pageNumber = 0;
             pageNumber < pdfPageKeys.length;
             pageNumber++) {
@@ -23,20 +25,21 @@ class ViewportController {
           final pdfPageBloc = pdfPageState?.bloc;
           final pdfPageVisibleBounds = pdfPageState?.pageVisibleBounds;
           if (pdfPageState != null &&
-              pdfPageBloc != null &&
+              pdfPageBloc?.isClosed == false &&
               pdfPageVisibleBounds != null) {
-            final blocState = pdfPageBloc.state;
+            final blocState = pdfPageBloc!.state;
             pdfPageBloc.add(
-              PageEventUpdateDisplay(
+              PageEventDisplayMain(
                 pageVisibleBounds: pdfPageVisibleBounds,
                 pageNumber: pageNumber,
                 scaleFactor: scaleFactor,
-                extractedText: blocState is PageStateUpdatingDisplay
+                extractedText: blocState is PageStateDisplayMain
                     ? blocState.extractedText
                     : null,
               ),
             );
           } else {
+            log('failed');
             print(pdfPageState);
             print(pdfPageBloc);
             print(pdfPageVisibleBounds);
