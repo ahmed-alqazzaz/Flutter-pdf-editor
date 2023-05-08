@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf_editor/viewer/widgets/sliding_appbars/appbars/top/tab_icon.dart';
 
-import '../../../../providers/appbars_visibility_provider.dart';
-import '../../appbar_popup_menu_button.dart/appbar_popup_menu_button.dart';
+import '../../../../providers/pdf_viewer_related/appbars_visibility_provider.dart';
 import '../../generic_sliding_appbar.dart';
+import 'appbar_popup_menu_button.dart/appbar_popup_menu_button.dart';
 
 class TopAppBar extends ConsumerWidget with PreferredSizeWidget {
-  const TopAppBar({
-    super.key,
-    required this.tabNumber,
-  });
+  const TopAppBar({super.key, required this.tabNumber});
 
   final int tabNumber;
-
   PreferredSizeWidget appBar() => AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_sharp),
@@ -39,16 +34,16 @@ class TopAppBar extends ConsumerWidget with PreferredSizeWidget {
           style: TextStyle(color: Colors.black),
         ),
       );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appBarsVisibilityModel = ref.watch(appbarVisibilityProvider);
-    //final areAppbarsVisible = appBarsVisibilityModel.areAppbarsVisible;
     final showProgressIndicator = appBarsVisibilityModel.isLoading;
     final controller = appBarsVisibilityModel.controller;
 
     return Column(
       children: [
-        SlidingAppBar(
+        GenericSlidingAppBar(
           slidingOffset: const Offset(0, -1),
           controller: controller,
           child: appBar(),
@@ -61,5 +56,8 @@ class TopAppBar extends ConsumerWidget with PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => appBar().preferredSize;
+  Size get preferredSize {
+    final appBarSize = appBar().preferredSize;
+    return Size(appBarSize.width, appBarSize.height * 1.1);
+  }
 }

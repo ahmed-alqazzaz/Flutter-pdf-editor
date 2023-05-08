@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:riverpod/riverpod.dart';
 
-class SlidingAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const SlidingAppBar({
+class GenericSlidingAppBar extends StatelessWidget {
+  const GenericSlidingAppBar({
     super.key,
     required this.child,
     required this.controller,
     required this.slidingOffset,
   });
 
-  final PreferredSizeWidget child;
+  final Widget child;
   final AnimationController controller;
-
   final Offset slidingOffset;
-
-  @override
-  Size get preferredSize => child.preferredSize;
 
   @override
   Widget build(BuildContext context) {
