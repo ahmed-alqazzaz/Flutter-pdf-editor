@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:beautiful_soup_dart/beautiful_soup.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lemmatizerx/lemmatizerx.dart';
@@ -18,17 +20,27 @@ class OxfordDictionaryScraper {
   final Lemmatizer lemmatizer;
   final soupParser = const OxfordDictionarySoupParser();
 
-  Future<List<Lexicon>> search(String word) async {
+  Future<List<Lexicon>> search(List<String> words) async {
     // create a list of possible lemmas
-    final lemmas = lemmatizer.lemmasOnly(word);
+    final lemmas = words
+        .map((word) {
+          // remove unnecessary chars
+          word = word.replaceAll(RegExp(r'[^a-zA-Z]'), '');
+
+          final lemmas = lemmatizer.lemmasOnly(word);
+          return lemmas.isNotEmpty ? lemmas : [word];
+        })
+        .expand((lemmas) => lemmas)
+        .toList();
 
     // search each one of the possible lemmas
     // and filter out null values
     final results = await Future.wait(
-      _searchLemmas(lemmas.isNotEmpty ? lemmas : [word]),
+      _searchLemmas(lemmas.isNotEmpty ? lemmas : words),
     ).then(
       (results) => results.whereType<Lexicon>().toList(),
     );
+
     return (results.isEmpty) ? throw const WordUnavailableException() : results;
   }
 

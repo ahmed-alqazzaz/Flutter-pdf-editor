@@ -7,16 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:lemmatizerx/lemmatizerx.dart';
-import 'package:pdf_editor/viewer/providers/appbars_visibility_provider.dart';
+import 'package:pdf_editor/viewer/providers/pdf_viewer_related/appbars_visibility_provider.dart';
 
 import 'package:pdf_editor/viewer/utils/text_recognition/adjusted_bounding_box.dart';
 import 'package:pdf_editor/viewer/utils/text_recognition/is_gesture_within_range.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page_gesture_detector/word_tap_detector.dart';
-import 'package:pdf_editor/viewer/widgets/word_explanation_modal/contractions/contractions.dart';
+import 'package:pdf_editor/viewer/widgets/word_explanation_modal/helpers/contractions/contractions.dart';
 import 'package:pdf_editor/viewer/widgets/word_explanation_modal/word_explanation_modal.dart';
 
-import '../../../providers/scroll_controller_provider.dart';
-import '../../../providers/word_interaction_provider.dart';
+import '../../../providers/pdf_viewer_related/scroll_controller_provider.dart';
+import '../../../providers/pdf_viewer_related/word_interaction_provider.dart';
 
 import '../bloc/page_bloc.dart';
 

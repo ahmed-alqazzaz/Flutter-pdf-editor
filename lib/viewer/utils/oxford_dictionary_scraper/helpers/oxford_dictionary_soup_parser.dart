@@ -11,8 +11,10 @@ class OxfordDictionarySoupParser {
     final phrasalVerbElements = sp.find('ul', class_: 'pvrefs')?.findAll('li');
     final similarWordElements =
         sp.find('div', id: 'relatedentries')?.find('dd')?.findAll('li');
+    final senses = _sensesOrganizer(_mainSegmentExtractor(sp));
     return Lexicon(
-      main: MainSegment(senses: _sensesOrganizer(_mainSegmentExtractor(sp))),
+      word: sp.find('div', class_: 'top-g')!.find('h1')!.text,
+      main: senses != null ? MainSegment(senses: senses) : null,
       idioms: idiomElements.map(
         (idiomSpan) => Idiom(
           idiom: idiomSpan.find('span', class_: 'idm')!.text,
@@ -22,19 +24,21 @@ class OxfordDictionarySoupParser {
         ),
       ),
       phrasalVerbs: phrasalVerbElements?.map(
-        (phrasalVerb) => PhrasalVerb(
-          link: phrasalVerb.find('a')!.getAttrValue('href')!,
-          text: phrasalVerb.find('span')!.text,
-        ),
-      ),
+            (phrasalVerb) => PhrasalVerb(
+              link: phrasalVerb.find('a')!.getAttrValue('href')!,
+              text: phrasalVerb.find('span')!.text,
+            ),
+          ) ??
+          [],
       similarWords: similarWordElements?.map(
-        (similarWord) => SimilarWord(
-          text: (similarWord.find('span')!.text.split(" ")..removeLast())
-              .join(' '),
-          link: similarWord.find('a')!.getAttrValue('href')!,
-          pos: similarWord.find('pos-g')!.text,
-        ),
-      ),
+            (similarWord) => SimilarWord(
+              text: (similarWord.find('span')!.text.split(" ")..removeLast())
+                  .join(' '),
+              link: similarWord.find('a')!.getAttrValue('href')!,
+              pos: similarWord.find('pos-g')!.text,
+            ),
+          ) ??
+          [],
       pos: sp.find('span', class_: 'pos')!.text,
     );
   }

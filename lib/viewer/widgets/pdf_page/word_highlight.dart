@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../providers/word_interaction_provider.dart';
+import '../../providers/pdf_viewer_related/word_interaction_provider.dart';
 
 class WordHighlight extends ConsumerWidget {
   const WordHighlight({super.key});

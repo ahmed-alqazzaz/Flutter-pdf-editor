@@ -1,7 +1,9 @@
+import 'package:beautiful_soup_dart/beautiful_soup.dart';
 import 'package:flutter/material.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pdf_editor/viewer/utils/oxford_dictionary_scraper/oxford_dictionary_scraper.dart';
 
 part 'generated/data.g.dart'; // this is the generated file
 
@@ -9,18 +11,20 @@ part 'generated/data.g.dart'; // this is the generated file
 @JsonSerializable()
 class Lexicon {
   const Lexicon({
+    required this.word,
     required this.main,
     required this.idioms,
     required this.phrasalVerbs,
     required this.similarWords,
     required this.pos,
   });
-
-  final Iterable<Idiom>? idioms;
-  final MainSegment main;
-  final Iterable<PhrasalVerb>? phrasalVerbs;
+  final String word;
   final String pos;
-  final Iterable<SimilarWord>? similarWords;
+  final MainSegment? main;
+  final Iterable<Idiom> idioms;
+  final Iterable<PhrasalVerb> phrasalVerbs;
+
+  final Iterable<SimilarWord> similarWords;
 
   factory Lexicon.fromJson(Map<String, dynamic> json) =>
       _$LexiconFromJson(json);
@@ -51,7 +55,7 @@ class Sense {
 class MainSegment {
   const MainSegment({required this.senses});
 
-  final Iterable<Sense>? senses;
+  final Iterable<Sense> senses;
 
   factory MainSegment.fromJson(Map<String, dynamic> json) =>
       _$MainSegmentFromJson(json);
@@ -109,9 +113,18 @@ class Example {
   Map<String, dynamic> toJson() => _$ExampleToJson(this);
 }
 
+mixin LinkFetching {
+  Future<Lexicon> fetch(OxfordDictionaryScraper scraper, String link) =>
+      scraper.client.fetchUrl(link).then(
+            (response) => scraper.soupParser.extractLexicon(
+              BeautifulSoup(response!),
+            ),
+          );
+}
+
 @immutable
 @JsonSerializable()
-class PhrasalVerb {
+class PhrasalVerb with LinkFetching {
   const PhrasalVerb({
     required this.text,
     required this.link,
@@ -119,7 +132,7 @@ class PhrasalVerb {
 
   final String link;
   final String text;
-
+  final String pos = 'verb';
   factory PhrasalVerb.fromJson(Map<String, dynamic> json) =>
       _$PhrasalVerbFromJson(json);
 
@@ -128,7 +141,7 @@ class PhrasalVerb {
 
 @immutable
 @JsonSerializable()
-class SimilarWord {
+class SimilarWord with LinkFetching {
   const SimilarWord({
     required this.text,
     required this.link,

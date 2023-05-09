@@ -7,25 +7,26 @@ part of '../data.dart';
 // **************************************************************************
 
 Lexicon _$LexiconFromJson(Map<String, dynamic> json) => Lexicon(
+      word: json['word'] as String,
       main: MainSegment.fromJson(json['main'] as Map<String, dynamic>),
-      idioms: (json['idioms'] as List<dynamic>?)
-          ?.map((e) => Idiom.fromJson(e as Map<String, dynamic>))
+      idioms: (json['idioms'] as List<dynamic>)
+          .map((e) => Idiom.fromJson(e as Map<String, dynamic>))
           .toList(),
-      phrasalVerbs: (json['phrasalVerbs'] as List<dynamic>?)
-          ?.map((e) => PhrasalVerb.fromJson(e as Map<String, dynamic>))
+      phrasalVerbs: (json['phrasalVerbs'] as List<dynamic>)
+          .map((e) => PhrasalVerb.fromJson(e as Map<String, dynamic>))
           .toList(),
-      similarWords: (json['similarWords'] as List<dynamic>?)
-          ?.map((e) => SimilarWord.fromJson(e as Map<String, dynamic>))
+      similarWords: (json['similarWords'] as List<dynamic>)
+          .map((e) => SimilarWord.fromJson(e as Map<String, dynamic>))
           .toList(),
       pos: json['pos'] as String,
     );
 
 Map<String, dynamic> _$LexiconToJson(Lexicon instance) => <String, dynamic>{
-      'idioms': instance.idioms?.toList(),
+      'idioms': instance.idioms.toList(),
       'main': instance.main,
-      'phrasalVerbs': instance.phrasalVerbs?.toList(),
+      'phrasalVerbs': instance.phrasalVerbs.toList(),
       'pos': instance.pos,
-      'similarWords': instance.similarWords?.toList(),
+      'similarWords': instance.similarWords.toList(),
     };
 
 Sense _$SenseFromJson(Map<String, dynamic> json) => Sense(
@@ -44,14 +45,14 @@ Map<String, dynamic> _$SenseToJson(Sense instance) => <String, dynamic>{
     };
 
 MainSegment _$MainSegmentFromJson(Map<String, dynamic> json) => MainSegment(
-      senses: (json['senses'] as List<dynamic>?)
-          ?.map((e) => Sense.fromJson(e as Map<String, dynamic>))
+      senses: (json['senses'] as List<dynamic>)
+          .map((e) => Sense.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
 Map<String, dynamic> _$MainSegmentToJson(MainSegment instance) =>
     <String, dynamic>{
-      'senses': instance.senses?.toList(),
+      'senses': instance.senses.toList(),
     };
 
 Idiom _$IdiomFromJson(Map<String, dynamic> json) => Idiom(

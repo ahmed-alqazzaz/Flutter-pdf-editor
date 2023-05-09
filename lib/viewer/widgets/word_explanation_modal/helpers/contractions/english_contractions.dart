@@ -9,7 +9,7 @@ class EnglishContractions {
   static const _contractions = <String, Tuple2<List<String>, List<String>>>{
     "ain't": Tuple2(['is', 'are', 'was', 'be'], ['not']),
     "aren't": Tuple2(['are'], ['not']),
-    "could've": Tuple2(['couldb'], ['not']),
+    "could've": Tuple2(['could'], ['have']),
     "couldn't": Tuple2(['could'], ['not']),
     "didn't": Tuple2(['did'], ['not']),
     "doesn't": Tuple2(['does'], ['not']),
@@ -75,7 +75,7 @@ class EnglishContractions {
     "you'll": Tuple2(['you'], ['will', 'shall']),
     "you're": Tuple2(['you'], ['are']),
     "you've": Tuple2(['you'], ['have']),
-    "can't": Tuple2(['cannot', 'can'], ['not']),
+    "can't": Tuple2(['can'], ['not']),
     "that'd": Tuple2(['that'], ['had', 'would']),
     "gonna": Tuple2(['going'], ['to']),
     "gotta": Tuple2(['got'], ['to']),

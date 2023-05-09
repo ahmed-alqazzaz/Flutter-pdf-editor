@@ -33,9 +33,9 @@ class OxfordDictionaryApiClient {
   static const String _oxfordDictionaryUrl =
       "https://www.oxfordlearnersdictionaries.com/definition/english/";
 
-  Future<String?> fetchWord(final String word) async {
+  Future<String?> fetchUrl(final String url) async {
     try {
-      final uri = Uri.parse(_oxfordDictionaryUrl + word);
+      final uri = Uri.parse(url);
 
       // Use client.getUrl() to create a GET request with the constructed URL
       final request = await client.openUrl("GET", uri);
@@ -54,6 +54,9 @@ class OxfordDictionaryApiClient {
       throw const OxfordDictionaryScraperUnknownException();
     }
   }
+
+  Future<String?> fetchWord(final String word) async =>
+      fetchUrl(_oxfordDictionaryUrl + word);
 
   // Get a random user agent from the list of popular user agents
   static String get _randomUserAgent => popularUserAgents.elementAt(

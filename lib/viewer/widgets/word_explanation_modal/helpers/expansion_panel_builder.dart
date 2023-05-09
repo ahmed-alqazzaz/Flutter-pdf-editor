@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:pdf_editor/viewer/widgets/word_explanation_modal/views/word_explanation_modal_view.dart';
 
 class ExpansionPanelBuilder extends StatefulWidget {
   const ExpansionPanelBuilder({
     super.key,
     required this.children,
     required this.backgroundColor,
+    required this.explanationCardsPageViewHeight,
   });
+
   final List<ExpansionPanelItem> children;
+  final double explanationCardsPageViewHeight;
   final Color backgroundColor;
   @override
   State<ExpansionPanelBuilder> createState() => _ExpansionPanelBuilderState();
@@ -24,6 +28,7 @@ class _ExpansionPanelBuilderState extends State<ExpansionPanelBuilder> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.children.length);
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       child: ExpansionPanelList(
@@ -49,7 +54,14 @@ class _ExpansionPanelBuilderState extends State<ExpansionPanelBuilder> {
                 return _isExpanded[i];
               }(),
               backgroundColor: widget.backgroundColor,
-              body: widget.children[i].body,
+              body: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical:
+                      WordExplanationModalView.explanationCardsVerticalPadding,
+                ),
+                height: widget.explanationCardsPageViewHeight,
+                child: widget.children[i].body,
+              ),
             )
           ]
         ],

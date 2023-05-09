@@ -11,7 +11,7 @@ import 'package:pdf_editor/viewer/widgets/pdf_page/word_highlight.dart';
 
 import 'package:visibility_detector/visibility_detector.dart';
 
-import '../../providers/word_interaction_provider.dart';
+import '../../providers/pdf_viewer_related/word_interaction_provider.dart';
 import 'bloc/page_bloc.dart';
 import 'bloc/page_states.dart';
 import '../../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
