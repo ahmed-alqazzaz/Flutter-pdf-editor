@@ -1,0 +1,1 @@
+class PdfFileAlreadyExistsException implements Exception {}
