@@ -7,11 +7,8 @@ abstract class HomePageEvent {
 }
 
 class HomePageEventDisplayFiles extends HomePageEvent {
-  const HomePageEventDisplayFiles();
-}
-
-class HomePageEventDisplayTools extends HomePageEvent {
-  const HomePageEventDisplayTools();
+  final bool Function(PdfFile)? filter;
+  const HomePageEventDisplayFiles({this.filter});
 }
 
 class HomePageEventAddFile extends HomePageEvent {

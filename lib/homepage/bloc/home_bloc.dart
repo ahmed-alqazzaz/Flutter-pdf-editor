@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/crud/pdf_db_manager/pdf_files_manager.dart';
 
@@ -12,14 +10,16 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
       : super(HomePageStateDisplayingFiles(
           List.unmodifiable(pdfFilesManager.files),
         )) {
-    // pdfFileManager must be Reinstantiated in case the listview got rebuild
     on<HomePageEventDisplayFiles>(
-      (event, emit) => emit(HomePageStateDisplayingFiles(
-        List.unmodifiable(pdfFilesManager.files),
-      )),
-    );
-    on<HomePageEventDisplayTools>(
-      (event, emit) => emit(const HomePageStateDisplayingTools()),
+      (event, emit) => emit(
+        HomePageStateDisplayingFiles(
+          List.unmodifiable(
+            pdfFilesManager.files.where(
+              event.filter ?? (file) => true,
+            ),
+          ),
+        ),
+      ),
     );
 
     on<HomePageEventAddFile>(

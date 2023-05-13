@@ -1,111 +1,90 @@
-import 'dart:developer';
-import 'dart:io';
+import 'dart:async';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pdf_editor/crud/pdf_db_manager/data/data.dart';
+import 'package:native_pdf_renderer/native_pdf_renderer.dart';
 
-import 'package:pdf_editor/homepage/bloc/home_events.dart';
-import 'package:pdf_editor/homepage/views/app_bars/home_app_bar.dart';
-import 'package:pdf_editor/homepage/views/app_bars/home_navigation_bar.dart';
+import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_app_bar.dart';
+import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_navigation_bar.dart';
+import 'package:pdf_editor/homepage/views/tools_view.dart/homepage_tool_view.dart';
 
-import '../../helpers/custom_icons.dart/custom_icons.dart';
 import '../bloc/home_bloc.dart';
-import '../bloc/home_states.dart';
-import 'files_view/add_files_button.dart';
+import '../bloc/home_events.dart';
 
-class HomePageView extends StatelessWidget {
+import 'files_view/homepage_files_view.dart';
+
+class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: Container(),
-      appBar: const HomeAppBar(),
-      bottomNavigationBar: const HomeNavigationBar(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: const AddFilesButton(),
-      body: const FilesListView(),
-    );
-  }
+  State<HomePageView> createState() => _HomePageViewState();
 }
 
-class FilesListView extends StatelessWidget {
-  const FilesListView({
-    super.key,
-  });
+class _HomePageViewState extends State<HomePageView> {
+  static const _pageNavigationCurve = Curves.linear;
+  static const _pageNavigationDuration = Duration(milliseconds: 400);
+
+  late final PageController _pageController;
+  late final StreamController<int> _currentPageController;
+  late final bloc = context.read<HomePageBloc>();
+  @override
+  void initState() {
+    _currentPageController = StreamController.broadcast();
+    _pageController = PageController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _currentPageController.close();
+    super.dispose();
+  }
+
+  Future<void> navigateTo(int page) async {
+    // in case the page is not already being scrolled
+    if (!_pageController.position.isScrollingNotifier.value) {
+      await _pageController.animateToPage(
+        page,
+        duration: _pageNavigationDuration,
+        curve: _pageNavigationCurve,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<HomePageBloc>();
-    return BlocBuilder<HomePageBloc, HomePageState>(
-      builder: (context, state) {
-        state as HomePageStateDisplayingFiles;
-        return ListView.builder(
-          itemBuilder: (BuildContext context, int index) {
-            final file = state.pdfFiles[index];
-            return TextButton(
-              onPressed: () {},
-              child: ListTile(
-                horizontalTitleGap: 25,
-                title: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Text(
-                    file.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                subtitle: Text(
-                  file.uploadDate.toString(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w400,
-                    color: Color.fromARGB(255, 160, 160, 160),
-                  ),
-                ),
-                contentPadding: const EdgeInsets.only(left: 16),
-                trailing: IconButton(
-                  iconSize: 30,
-                  splashRadius: 25,
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.more_vert_outlined,
-                    size: 30,
-                  ),
-                ),
-                leading: FutureBuilder(
-                  future: file.coverPagePath,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      if (!file.isCached) {
-                        bloc.add(
-                          HomePageEventUpdateFile(
-                            file.copyWith(
-                              isCached: true,
-                            ),
-                          ),
-                        );
-                      }
-                      return Image.file(
-                        File(snapshot.data!),
-                        fit: BoxFit.cover,
-                      );
-                    } else {
-                      return const CircularProgressIndicator();
-                    }
-                  },
-                ),
-              ),
-            );
-          },
-          itemCount: state.pdfFiles.length,
-        );
-      },
+    final homePageBloc = context.read<HomePageBloc>();
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: HomePageAppBar(
+        onSearchQueryUpdate: (query) {
+          homePageBloc.add(
+            HomePageEventDisplayFiles(
+              filter: (pdfFile) => pdfFile.name.contains(query),
+            ),
+          );
+        },
+        indexController: _currentPageController,
+      ),
+      bottomNavigationBar: HomePageNavigationBar(
+        indexController: _currentPageController,
+        onItemTapped: (int index) async {
+          if (index == 1) {
+            await navigateTo(1);
+          } else {
+            await navigateTo(0);
+          }
+        },
+      ),
+      body: PageView(
+        onPageChanged: (value) => _currentPageController.add(value),
+        controller: _pageController,
+        children: const [
+          HomePageFilesView(),
+          HomePageToolsView(),
+        ],
+      ),
     );
   }
 }
