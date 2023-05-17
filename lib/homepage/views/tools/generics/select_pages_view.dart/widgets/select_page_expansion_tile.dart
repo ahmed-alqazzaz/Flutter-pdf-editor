@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pdf_editor/homepage/views/generics/selectable/selectability_provider.dart';
 
 import '../../../../../../main.dart';
 import '../../../../../utils/range_utils.dart';
 import '../../../../generics/generic_text_field.dart';
-import '../../selectable_pdf_pages.dart/providers/selectable_pdf_pages_provider.dart';
 
 class SelectRangeExpansionTile extends ConsumerStatefulWidget {
   const SelectRangeExpansionTile({super.key});
@@ -20,10 +20,10 @@ class _SelectRangeExpansionTile extends ConsumerState<ConsumerStatefulWidget> {
     final String textFieldText =
         textFieldUnsanitizedText.replaceAll(RegExp(r"[^0-9,\-]"), "");
     final String providerText =
-        ref.read(selectedPagesProvider).selectedIndexesRangeString;
+        ref.read(selectabilityProvider).selectedIndexesRangeString;
 
     if (textFieldText.isEmpty) {
-      ref.read(selectedPagesProvider).clear();
+      ref.read(selectabilityProvider).clear();
       return;
     }
     // in case the user typed forbidden value
@@ -55,15 +55,17 @@ class _SelectRangeExpansionTile extends ConsumerState<ConsumerStatefulWidget> {
     // is not in the range of the provider
     if (textFieldText.length < providerText.length ||
         !providerPageRange.contains(textFieldLastValue)) {
-      ref.read(selectedPagesProvider).clear();
-      ref.read(selectedPagesProvider).selectMany(
+      ref.read(selectabilityProvider).clear();
+      ref.read(selectabilityProvider).selectMany(
             textFieldPageRange,
           );
     }
   }
 
   void _selectedPagesListener(
-      SelectedPagesModel? previous, SelectedPagesModel next) {
+    SelectabilityModel? previous,
+    SelectabilityModel next,
+  ) {
     final providerText = next.selectedIndexesRangeString;
     final textFieldText = _textEditingController.text;
     if (textFieldText == providerText) {
@@ -96,7 +98,7 @@ class _SelectRangeExpansionTile extends ConsumerState<ConsumerStatefulWidget> {
     // the base case for preventing infinite recursion is 'textFieldText == providerText'
     _textEditingController = TextEditingController()
       ..addListener(_textFieldListener);
-    ref.listenManual(selectedPagesProvider, _selectedPagesListener);
+    ref.listenManual(selectabilityProvider, _selectedPagesListener);
     super.initState();
   }
 

@@ -1,31 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pdf_editor/homepage/views/generics/selectable/selectability_provider.dart';
 
 import '../../../../../../generics/generic_button.dart';
-import '../../selectable_pdf_pages.dart/providers/selectable_pdf_pages_provider.dart';
 
-class SelectPagesViewButton extends ConsumerWidget {
-  const SelectPagesViewButton({
+class GenericSelectPagesButton extends ConsumerWidget {
+  const GenericSelectPagesButton({
     super.key,
-    required this.size,
     required this.onPressed,
     required this.title,
   });
 
-  final Size size;
+  static const double height = 40;
   final String title;
-  final void Function() onPressed;
+  final void Function(Set<int> selectedIndexes) onPressed;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedPagesCount =
-        ref.watch(selectedPagesProvider).selectedIndexes.length;
+    final width = MediaQuery.of(context).size.width;
+    final selectedIndexes = ref.watch(selectabilityProvider.select(
+      (selectabilityModel) => selectabilityModel.selectedIndexes,
+    ));
+    final selectedPagesCount = selectedIndexes.length;
     return GenericButton.large(
-      onPressed: () {},
       color: selectedPagesCount == 0
           ? const Color.fromRGBO(186, 186, 186, 1)
           : Colors.deepPurple,
       textColor: Colors.white,
-      size: size,
+      size: Size(width, height),
+      onPressed: () => onPressed(selectedIndexes),
       child: Text(
         '$title ($selectedPagesCount)',
         style: const TextStyle(fontSize: 18),

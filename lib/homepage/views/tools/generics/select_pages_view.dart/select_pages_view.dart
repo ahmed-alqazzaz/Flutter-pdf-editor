@@ -1,31 +1,32 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pdf_editor/helpers/custom_icons.dart/custom_icons.dart';
 import 'package:pdf_editor/homepage/views/generics/app_bars/generic_app_bar.dart';
-import 'package:pdf_editor/homepage/views/generics/generic_text_field.dart';
+import 'package:pdf_editor/homepage/views/generics/selectable/selectability_provider.dart';
 import 'package:pdf_editor/homepage/views/tools/generics/select_pages_view.dart/widgets/select_page_expansion_tile.dart';
 import 'package:pdf_editor/homepage/views/tools/generics/select_pages_view.dart/widgets/select_pages_view_button.dart';
-import 'package:pdf_editor/homepage/views/tools/generics/selectable_pdf_pages.dart/providers/selectable_pdf_pages_provider.dart';
-import 'package:pdf_editor/homepage/views/tools/generics/selectable_pdf_pages.dart/selectable_pdf_pages.dart';
+import 'package:pdf_editor/homepage/views/tools/generics/select_pages_view.dart/selectable_pdf_pages/selectable_pdf_pages.dart';
 
 import '../../../../../crud/pdf_db_manager/data/data.dart';
-import '../../../../../generics/generic_button.dart';
 
 class GenericSelectPagesView extends ConsumerWidget {
   const GenericSelectPagesView({
     super.key,
     required this.file,
     required this.title,
-    required this.buttonTitle,
+    required this.proceedButton,
   });
 
   final PdfFile file;
   final String title;
-  final String buttonTitle;
+  final GenericSelectPagesButton proceedButton;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
+    final proceedButtonWidth = size.width * 0.85;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -37,12 +38,18 @@ class GenericSelectPagesView extends ConsumerWidget {
         actions: [
           IconButton(
               onPressed: () {
-                ref.read(selectedPagesProvider).clear();
+                ref.read(selectabilityProvider).clear();
               },
               icon: const Icon(CustomIcons.unselect)),
           IconButton(
             onPressed: () {
-              ref.read(selectedPagesProvider).selectAll();
+              final selectabilityModel = ref.read(selectabilityProvider);
+              final pageCount = selectabilityModel.indexCount;
+              if (pageCount != null) {
+                selectabilityModel.selectMany(
+                  List.generate(pageCount - 1, (index) => index + 1),
+                );
+              }
             },
             icon: const Icon(Icons.select_all_sharp),
           )
@@ -52,6 +59,9 @@ class GenericSelectPagesView extends ConsumerWidget {
         future: file.pages,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
+            final pages = snapshot.data!;
+            // set the number of indexes to the number of pages
+            ref.read(selectabilityProvider).setIndexCount(pages.length);
             return Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -61,14 +71,13 @@ class GenericSelectPagesView extends ConsumerWidget {
                   fit: FlexFit.tight,
                   child: Card(
                     child: SelectablePdfPages(
-                      pages: snapshot.data!,
+                      pages: pages,
                     ),
                   ),
                 ),
-                SelectPagesViewButton(
-                  size: Size(size.width * 0.85, 40),
-                  title: buttonTitle,
-                  onPressed: () {},
+                SizedBox(
+                  width: proceedButtonWidth,
+                  child: proceedButton,
                 ),
                 Flexible(
                   flex: 1,
