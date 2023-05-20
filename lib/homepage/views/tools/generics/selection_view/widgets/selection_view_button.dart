@@ -4,16 +4,15 @@ import 'package:pdf_editor/homepage/views/generics/selectable/selectability_prov
 
 import '../../../../../../generics/generic_button.dart';
 
-class GenericSelectPagesButton extends ConsumerWidget {
-  const GenericSelectPagesButton({
+class GenericSelectionViewButton extends ConsumerWidget {
+  const GenericSelectionViewButton({
     super.key,
     required this.onPressed,
     required this.title,
   });
-
   static const double height = 40;
   final String title;
-  final void Function(Set<int> selectedIndexes) onPressed;
+  final void Function(List<int> selectedIndexes) onPressed;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.of(context).size.width;

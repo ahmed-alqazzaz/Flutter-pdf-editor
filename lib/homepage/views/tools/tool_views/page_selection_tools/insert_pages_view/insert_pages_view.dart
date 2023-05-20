@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../../../../crud/pdf_db_manager/data/data.dart';
-import '../../../generics/app_bars/generic_app_bar.dart';
+import '../../../../../../crud/pdf_db_manager/data/data.dart';
+import '../../../../generics/app_bars/generic_app_bar.dart';
 
 class InsertPagesView extends StatefulWidget {
   const InsertPagesView({super.key, required this.file});
