@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../files_view/widgets/app_bar/app_bar.dart';
+import '../../files_view/widgets/app_bar.dart';
 import 'generic_app_bar.dart';
 
 class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {

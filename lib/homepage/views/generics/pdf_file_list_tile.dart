@@ -1,6 +1,11 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pdf_editor/crud/pdf_to_image_converter/pdf_to_image_converter.dart';
+import 'package:pdf_editor/homepage/bloc/home_bloc.dart';
+import 'package:pdf_editor/homepage/bloc/home_events.dart';
 
 import '../../../crud/pdf_db_manager/data/data.dart';
 
@@ -8,7 +13,7 @@ class PdfFileListTile extends StatelessWidget {
   const PdfFileListTile({
     super.key,
     required this.file,
-    this.onFileCached,
+    required this.onFileCached,
     this.trailing,
   });
   static const double contentLeftPadding = 16;
@@ -48,10 +53,39 @@ class PdfFileListTile extends StatelessWidget {
     );
   }
 
-  Widget coverImageGenerator() {
-    final timer = Stopwatch()..start();
-    return FutureBuilder(
-      future: file.coverPagePath,
+  Widget coverImageGenerator(HomePageBloc bloc) {
+    final coverImagePath = file.coverPagePath;
+    final isPathAvailable = coverImagePath != null;
+    log('path is $isPathAvailable');
+    if (isPathAvailable) {
+      return ClipRRect(
+          borderRadius: BorderRadius.circular(coverImageBorderRadius),
+          child: AspectRatio(
+            aspectRatio: coverImageAspectRatio,
+            child: Image.file(
+              File(coverImagePath),
+              fit: BoxFit.cover,
+            ),
+          ));
+    }
+    return FutureBuilder<String>(
+      future: PdfToImage.open(file.path).then(
+        (converter) async {
+          await converter.close();
+          return converter.coverImage.then(
+            (image) async {
+              final coverImagePath = image.path;
+              log(coverImagePath);
+              bloc.add(
+                HomePageEventUpdateFile(
+                  file.copyWith(coverPagePath: coverImagePath),
+                ),
+              );
+              return image.path;
+            },
+          );
+        },
+      ),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           if (onFileCached != null) onFileCached!(file);
@@ -60,17 +94,12 @@ class PdfFileListTile extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: coverImageAspectRatio,
                 child: Image.file(
-                  File(snapshot.data!.path),
+                  File(snapshot.data!),
                   fit: BoxFit.cover,
                 ),
               ));
         } else {
-          // show circular progress indicator if it's
-          // been loading for more than 1.5 seconds
-          if (timer.elapsed.inMilliseconds > coverImageLoadingThreshold) {
-            return const CircularProgressIndicator();
-          }
-          return const RawImage();
+          return const CircularProgressIndicator();
         }
       },
     );
@@ -84,7 +113,7 @@ class PdfFileListTile extends StatelessWidget {
       subtitle: subtitleGenerator(),
       contentPadding: const EdgeInsets.only(left: contentLeftPadding),
       trailing: trailing,
-      leading: coverImageGenerator(),
+      leading: coverImageGenerator(context.read<HomePageBloc>()),
     );
   }
 }

@@ -27,13 +27,14 @@ class PdfToImage {
 
   final Size pageSize;
 
-  static Future<PdfToImage> open(String pdfPath, {bool cache = true}) async {
+  static Future<PdfToImage> open(String pdfPath) async {
     final documentManager = await PdfDocumentManager.open(pdfPath);
     final firstPageSize = await documentManager.document.getPage(1).then(
           (page) => Size(page.width, page.height),
         );
 
     final converter = PdfToImage._(documentManager, firstPageSize);
+    await converter._cacheAll();
     return converter;
   }
 
@@ -59,7 +60,6 @@ class PdfToImage {
 
   // this is meant to be used during the viewer initialazation
   Future<void> _cacheAll() async {
-    log('3');
     final timer = Stopwatch()..start();
     for (int pageNumber = 1; pageNumber <= _document.pageCount; pageNumber++) {
       await getOrUpdateImage(
@@ -67,7 +67,6 @@ class PdfToImage {
         scaleFactor: 1,
       );
     }
-
     dev.log("cached in ${timer.elapsedMilliseconds}");
   }
 
@@ -177,7 +176,7 @@ class PdfToImage {
     );
   }
 
-  Future<void> close() async => _documentManager.close();
+  Future<void> close() async => await _documentManager.close();
 
   Future<String> _createImagePath({
     required int pageNumber,

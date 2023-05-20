@@ -11,17 +11,38 @@ class PdfDbManager {
   const PdfDbManager._(this._db);
   final Database _db;
   Database get db => _db;
-  static Future<PdfDbManager> open(final String dbFilePath) async =>
-      PdfDbManager._(
-        await openDatabase(
-          dbFilePath,
-          version: 1,
-          onCreate: (db, version) => db.execute(createFilesTableCommand),
-        ),
-      );
-  Future<void> close() async => await _db.close();
+  static Future<PdfDbManager> open(final String dbFilePath) async {
+    return PdfDbManager._(
+      await openDatabase(
+        dbFilePath,
+        version: 1,
+        onCreate: (db, version) => db.execute(createFilesTableCommand),
+      ),
+    );
+  }
+
+  Future<void> close() async {
+    if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
+    await _db.close();
+  }
+
+  Future<void> updateFile(final PdfFile file, final int fileId) async {
+    if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
+
+    await _db.update(
+      filesTable,
+      {
+        fileCoverPagePathColumn: file.coverPagePath,
+        filePathColumn: file.path,
+        downloadDateColumn: file.uploadDate.toString(),
+      },
+      where: '$idColumn = ?',
+      whereArgs: [fileId],
+    );
+  }
 
   Future<void> addFile(final PdfFile file) async {
+    if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
     try {
       await _db.insert(filesTable, {
         filePathColumn: file.path,
@@ -29,12 +50,13 @@ class PdfDbManager {
       });
     } on DatabaseException catch (e) {
       if (e.isUniqueConstraintError()) {
-        throw PdfFileAlreadyExistsException();
+        throw const PdfFileAlreadyExistsException();
       }
     }
   }
 
   Future<void> deleteFiles(final int fileId) async {
+    if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
     await _db.delete(
       filesTable,
       where: '$idColumn = ?',
@@ -42,8 +64,13 @@ class PdfDbManager {
     );
   }
 
-  Future<Iterable<PdfFile>> retrieveFiles() async =>
-      await _db.query(filesTable).then((result) => result.map((row) {
-            return PdfFile.fromRow(row);
-          }));
+  Future<Iterable<PdfFile>> retrieveFiles() async {
+    if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
+    return await _db.query(filesTable).then((result) {
+      log(result.length.toString());
+      return result.map((row) {
+        return PdfFile.fromRow(row);
+      });
+    });
+  }
 }

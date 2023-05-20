@@ -28,14 +28,7 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
           ),
     );
     on<HomePageEventUpdateFile>((event, emit) {
-      pdfFilesManager.files.replaceRange(
-        0,
-        pdfFilesManager.files.length,
-        pdfFilesManager.files.map(
-          (file) => file.path == event.file.path ? event.file : file,
-        ),
-      );
-      add(const HomePageEventDisplayFiles());
+      pdfFilesManager.updateFile(event.file);
     });
   }
 

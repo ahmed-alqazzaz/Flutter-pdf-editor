@@ -31,15 +31,13 @@ class Selectable extends ConsumerWidget {
     );
   }
 
-  Widget selectionHighlight(BoxConstraints constraints, bool isSelected) {
+  Widget selectionHighlight(bool isSelected) {
     return AnimatedOpacity(
       opacity: isSelected ? selectionOverlayOpacity : 0,
       curve: Curves.easeIn,
       duration: const Duration(milliseconds: 200),
       child: Container(
         color: selectionOverlayColor,
-        width: constraints.maxWidth,
-        height: constraints.maxHeight,
       ),
     );
   }
@@ -48,7 +46,7 @@ class Selectable extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isSelected = ref.watch(
       selectabilityProvider.select(
-        (value) => value.selectedIndexes.contains(index),
+        (value) => value.selectedIndexes.contains(index - 1),
       ),
     );
     return LayoutBuilder(
@@ -56,7 +54,9 @@ class Selectable extends ConsumerWidget {
         return Stack(
           children: [
             child,
-            selectionHighlight(constraints, isSelected),
+            Positioned.fill(
+              child: selectionHighlight(isSelected),
+            ),
             Positioned.fill(
               child: selectionSplash(ref.read(selectabilityProvider)),
             ),

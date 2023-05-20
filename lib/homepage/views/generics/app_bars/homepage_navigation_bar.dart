@@ -31,7 +31,7 @@ class HomePageNavigationBar extends StatelessWidget {
                 label: 'Files',
               ),
               BottomNavigationBarItem(
-                icon: Icon(CustomIcons.compressAlt),
+                icon: Icon(CustomIcons.compress),
                 label: 'Tools',
               ),
             ],

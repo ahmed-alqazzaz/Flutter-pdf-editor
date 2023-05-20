@@ -24,6 +24,13 @@ class PdfFilesManager {
     );
   }
 
+  Future<void> updateFile(final PdfFile newFile) async {
+    final id =
+        files.indexOf(files.firstWhere((file) => file.path == newFile.path));
+    files[id] = newFile;
+    await _dbManager.updateFile(newFile, id + 1);
+  }
+
   Future<void> addFile(final PdfFile file) async {
     files.add(file);
     return await _dbManager.addFile(file);
@@ -31,8 +38,8 @@ class PdfFilesManager {
 
   Future<void> deleteFiles(final List<int> filesId) async {
     for (final id in filesId) {
-      files.removeAt(id - 1);
-      await _dbManager.deleteFiles(id);
+      files.removeAt(id);
+      await _dbManager.deleteFiles(id + 1);
     }
   }
 

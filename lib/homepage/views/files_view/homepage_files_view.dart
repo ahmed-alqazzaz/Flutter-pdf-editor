@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pdf_editor/homepage/views/tools/tool_views/discard_pages_view.dart';
+import 'package:pdf_editor/homepage/views/tools/tool_views/file_selection_tools/merge_files_view.dart';
+import 'package:pdf_editor/homepage/views/tools/tool_views/page_selection_tools/discard_pages_view.dart';
 
 import 'package:pdf_editor/homepage/views/generics/tools_List_view.dart';
 
@@ -16,24 +18,19 @@ import '../../bloc/home_bloc.dart';
 import '../../bloc/home_events.dart';
 import '../../bloc/home_states.dart';
 import '../generics/pdf_file_list_tile.dart';
+import '../tools/generics/select_files_views/order_files_view.dart';
 import '../tools/generics/tool.dart';
 
-import '../tools/generics/select_pages_view.dart/select_pages_view.dart';
+import '../tools/generics/select_pages_view/select_pages_view.dart';
 import 'widgets/add_files_button.dart';
 import 'widgets/files_list_view.dart';
 
-class HomePageFilesView extends StatefulWidget {
-  const HomePageFilesView({super.key});
-
-  @override
-  State<HomePageFilesView> createState() => _HomePageFilesViewState();
-}
-
-class _HomePageFilesViewState extends State<HomePageFilesView>
-    with AutomaticKeepAliveClientMixin<HomePageFilesView> {
+class HomePageFilesView extends StatelessWidget {
   static const double _toolsBottomSheetHeight = 420;
 
-  void showToolsBottomSheet(PdfFile file) async {
+  const HomePageFilesView({super.key});
+
+  void showToolsBottomSheet(PdfFile file, BuildContext context) async {
     final screenWidth =
         MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
     final tools = <Tool>[
@@ -57,6 +54,7 @@ class _HomePageFilesViewState extends State<HomePageFilesView>
         icon: Icons.abc,
         onTap: (context) {
           print('working');
+
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => DiscardPagesView(file: file)),
           );
@@ -84,7 +82,10 @@ class _HomePageFilesViewState extends State<HomePageFilesView>
       builder: (context) {
         return Column(
           children: [
-            PdfFileListTile(file: file),
+            PdfFileListTile(
+              file: file,
+              onFileCached: (file) {},
+            ),
             Expanded(
               child: ToolsListView.forBottomSheet(tools: tools),
             ),
@@ -96,7 +97,22 @@ class _HomePageFilesViewState extends State<HomePageFilesView>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    Timer(const Duration(seconds: 3), () {
+      final files = context.read<HomePageBloc>().pdfFilesManager.files;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (_) => BlocProvider<HomePageBloc>.value(
+                  value: BlocProvider.of<HomePageBloc>(context),
+                  child: ReorderableFilesView(
+                    files: files,
+                    onPdfFileCached: (PdfFile file) {},
+                    onProceed: (List<int> indexes) {},
+                    proceedButtonTitle: 'MERGE',
+                    title: 'Order files',
+                  ),
+                )),
+      );
+    });
     final homePageBloc = context.read<HomePageBloc>();
     final appBloc = context.read<AppBloc>();
     return Scaffold(
@@ -111,7 +127,7 @@ class _HomePageFilesViewState extends State<HomePageFilesView>
                   PdfFile(
                     path: path,
                     uploadDate: DateTime.now(),
-                    isCached: false,
+                    coverPagePath: null,
                   ),
                 ),
               );
@@ -124,27 +140,15 @@ class _HomePageFilesViewState extends State<HomePageFilesView>
           state as HomePageStateDisplayingFiles;
           return FilesListView(
             pdfFiles: state.pdfFiles,
-            onOptionsIconTapped: showToolsBottomSheet,
+            onOptionsIconTapped: (PdfFile file) =>
+                showToolsBottomSheet(file, context),
             onFileTapped: (file) async {
               appBloc.add(AppEventDisplayPdfViewer(file.path));
             },
-            onFileCached: (file) {
-              if (!file.isCached) {
-                homePageBloc.add(
-                  HomePageEventUpdateFile(
-                    file.copyWith(
-                      isCached: true,
-                    ),
-                  ),
-                );
-              }
-            },
+            onFileCached: (file) {},
           );
         },
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

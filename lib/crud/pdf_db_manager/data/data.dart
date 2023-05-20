@@ -1,6 +1,6 @@
-import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
+import 'package:pdf_editor/crud/pdf_db_manager/pdf_files_manager.dart';
+import 'package:pdf_editor/crud/pdf_to_image_converter/data.dart';
 
 import '../../pdf_to_image_converter/pdf_to_image_converter.dart';
 import 'constants.dart';
@@ -10,35 +10,31 @@ class PdfFile {
   const PdfFile({
     required this.path,
     required this.uploadDate,
-    this.isCached = true,
+    required this.coverPagePath,
   });
   final String path;
+  final String? coverPagePath;
   final DateTime uploadDate;
-  final bool isCached;
 
   PdfFile.fromRow(Map<String, Object?> row)
       : path = row[filePathColumn] as String,
-        uploadDate = DateTime.parse(row[downloadDateColumn] as String),
-        isCached = true;
+        coverPagePath = row[fileCoverPagePathColumn] as String?,
+        uploadDate = DateTime.parse(row[downloadDateColumn] as String);
 
-  Future<String> get coverPagePath async {
-    return await PdfToImage.open(path, cache: !isCached).then(
-      (converter) => converter.coverImage.then(
-        (pageImage) => pageImage.path,
-      ),
-    );
-  }
+  Future<Map<int, PageImage>> get pages async =>
+      await PdfToImage.open(path).then(
+        (converter) => converter.cache,
+      );
 
   String get name => path.split('/').last;
-  PdfFile copyWith({
-    String? path,
-    DateTime? uploadDate,
-    bool? isCached,
-  }) {
+  PdfFile copyWith(
+      {String? path,
+      DateTime? uploadDate,
+      bool? isCached,
+      String? coverPagePath}) {
     return PdfFile(
-      path: path ?? this.path,
-      uploadDate: uploadDate ?? this.uploadDate,
-      isCached: isCached ?? this.isCached,
-    );
+        path: path ?? this.path,
+        uploadDate: uploadDate ?? this.uploadDate,
+        coverPagePath: coverPagePath ?? this.coverPagePath);
   }
 }

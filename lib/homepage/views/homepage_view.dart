@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:native_pdf_renderer/native_pdf_renderer.dart';
 
 import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_app_bar.dart';
 import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_navigation_bar.dart';

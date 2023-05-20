@@ -5,8 +5,8 @@ import 'package:pdf_editor/homepage/utils/range_utils.dart';
 class SelectabilityModel extends ChangeNotifier {
   SelectabilityModel();
 
-  final _selectedIndexes = <int>{};
-  Set<int> get selectedIndexes => Set.unmodifiable(_selectedIndexes);
+  final _selectedIndexes = <int>[];
+  List<int> get selectedIndexes => List.unmodifiable(_selectedIndexes);
 
   int? _indexCount;
   int? get indexCount => _indexCount;
@@ -34,8 +34,17 @@ class SelectabilityModel extends ChangeNotifier {
     super.notifyListeners();
   }
 
+  void swapIndexes(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final int index = _selectedIndexes.removeAt(oldIndex);
+    _selectedIndexes.insert(newIndex, index);
+    super.notifyListeners();
+  }
+
   String get selectedIndexesRangeString =>
-      RangeUtils.generateRangeString(_selectedIndexes.toList());
+      RangeUtils.generateRangeString(_selectedIndexes);
 }
 
 final selectabilityProvider =
