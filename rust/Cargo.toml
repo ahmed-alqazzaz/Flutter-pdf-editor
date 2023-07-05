@@ -1,0 +1,18 @@
+[package]
+name = "rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+flutter_rust_bridge = { version = "1.78.0", features = ["zero-copy"] }
+cargo-ndk = "3.2.0"
+pdfium-render = "0.8.5"
+image = "0.24.6"
+base64 = "0.21.2"
+zerocopy = "0.6.1"
+anyhow = "1.0.71"
+rayon = "1.7.0"
