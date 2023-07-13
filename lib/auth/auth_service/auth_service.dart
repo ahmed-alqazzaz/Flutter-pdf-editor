@@ -1,5 +1,7 @@
 import 'package:pdf_editor/auth/auth_service/firebase_auth_provider.dart';
 
+import 'auth_user.dart';
+
 class AuthService {
   final _provider = FirebaseAuthProvider();
 
@@ -14,7 +16,8 @@ class AuthService {
 
   static AnonymousAuthservice withAnonymous() => AnonymousAuthservice();
 
-  get currentUser => _provider.currentUser;
+  AuthUser? get currentUser => _provider.currentUser;
+  Stream<AuthUser?> get authStateChanges => _provider.authStateChanges;
 
   Future<void> initialize() async => await _provider.initialize();
 

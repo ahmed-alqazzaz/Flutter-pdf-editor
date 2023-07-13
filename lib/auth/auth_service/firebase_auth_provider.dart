@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_login_facebook/flutter_login_facebook.dart';
@@ -14,8 +16,13 @@ class FirebaseAuthProvider {
     );
   }
 
+  Stream<AuthUser?> get authStateChanges =>
+      FirebaseAuth.instance.authStateChanges().asyncMap(
+            (user) => user != null ? AuthUser.fromFirebase(user) : null,
+          );
   AuthUser? get currentUser {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       return null;
     }
@@ -74,10 +81,25 @@ class FirebaseAuthProvider {
     required String email,
     required String password,
   }) async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "invalid-credential":
+          throw InvalidTokenAuthException();
+        case "user-disabled":
+          throw UserDisabledAuthException();
+        case "network-request-failed":
+          throw ConnectionErrorAuthException();
+        case "wrong-password":
+          throw WrongPasswordAuthException();
+        default:
+          throw GenericAuthException(e);
+      }
+    }
   }
 
   Future<void> signInWithFacebook() async {
@@ -92,8 +114,6 @@ class FirebaseAuthProvider {
       switch (res.status) {
         case FacebookLoginStatus.success:
           final FacebookAccessToken accessToken = res.accessToken!;
-          print(accessToken.declinedPermissions);
-
           await FirebaseAuth.instance.signInWithCredential(
             FacebookAuthProvider.credential(accessToken.token),
           );
@@ -142,9 +162,11 @@ class FirebaseAuthProvider {
     try {
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (currentUser == null) {
+        log("hhh");
         throw UserNotLoggedInAuthException();
       }
     } on FirebaseAuthException catch (e) {
+      log(e.code);
       switch (e.code) {
         case "invalid-credential":
           throw InvalidTokenAuthException();
