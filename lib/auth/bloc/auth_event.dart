@@ -8,11 +8,7 @@ abstract class AuthEvent {
 }
 
 class AuthEventSeekMain extends AuthEvent {
-  const AuthEventSeekMain({
-    required this.shouldSkipButtonGlow,
-  });
-
-  final bool shouldSkipButtonGlow;
+  const AuthEventSeekMain();
 }
 
 // Type email and password events
@@ -78,4 +74,20 @@ class AuthEventRegister extends AuthEventLogOrRegister {
     required super.email,
     required super.password,
   });
+}
+
+class AuthEventLoginWithGoogle extends AuthEvent {
+  const AuthEventLoginWithGoogle();
+}
+
+class AuthEventLoginWithFacebook extends AuthEvent {
+  const AuthEventLoginWithFacebook();
+}
+
+class AuthEventLoginWithApple extends AuthEvent {
+  const AuthEventLoginWithApple();
+}
+
+class AuthEventLoginAnonymously extends AuthEvent {
+  const AuthEventLoginAnonymously();
 }

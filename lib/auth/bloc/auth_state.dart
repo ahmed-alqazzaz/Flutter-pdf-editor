@@ -19,12 +19,8 @@ class AuthStateInitial extends AuthState {
 }
 
 class AuthStateMain extends AuthState {
-  const AuthStateMain({required this.shouldSkipButtonGlow});
-
-  final bool shouldSkipButtonGlow;
-
-  @override
-  List<Object> get props => [shouldSkipButtonGlow];
+  final Exception? exception;
+  const AuthStateMain([this.exception]);
 }
 
 // Typing email and password states
