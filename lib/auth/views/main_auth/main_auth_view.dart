@@ -1,20 +1,12 @@
-import 'dart:async';
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pdf_editor/auth/auth_service/auth_service.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_page.dart';
 import 'package:pdf_editor/auth/bloc/enums/auth_type.dart';
-
-import 'package:pdf_editor/auth/auth_service/firebase_auth_provider.dart';
 import 'package:pdf_editor/auth/bloc/auth_event.dart';
-import 'package:pdf_editor/auth/generics/generic_auth_view/generic_auth_view.dart';
 import 'package:pdf_editor/auth/views/navigator.dart';
 import 'package:pdf_editor/helpers/error_messages/show_error_message.dart';
 
-import '../../auth_service/auth_exceptions.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_state.dart';
 
@@ -22,26 +14,9 @@ import '../../generics/buttons/generic_button.dart';
 import '../../generics/buttons/generic_child.dart';
 import '../../generics/buttons/enums/button.dart';
 import '../error_messages.dart';
-import '../login/login_type_email_view.dart';
-import '../login/login_type_password_view.dart';
-import '../register/register_type_email_view.dart';
-import '../register/register_type_password_view.dart';
-
-class MainAuthScreen extends StatelessWidget {
-  const MainAuthScreen({super.key, required this.navigatorKey});
-  final GlobalKey<NavigatorState> navigatorKey;
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthBloc(navigatorKey),
-      child: MainAuthView(),
-    );
-  }
-}
 
 class MainAuthView extends StatelessWidget {
   const MainAuthView({super.key});
-
   static const Color skipButtonDefaultColor =
       Color.fromARGB(255, 115, 112, 112);
   static const Color skipButtonSelectedColor = Colors.black;
@@ -103,7 +78,7 @@ class MainAuthView extends StatelessWidget {
     });
   }
 
-  Widget skipButton() {
+  Widget _skipButton() {
     return Builder(builder: (context) {
       return TextButton(
         onPressed: () {
@@ -211,7 +186,7 @@ class MainAuthView extends StatelessWidget {
                     _loginWithEmailAndPasswordButton(),
                     _registerWithEmailAndPasswordButton(),
                     SizedBox(height: height * 0.13),
-                    skipButton(),
+                    _skipButton(),
                     const SizedBox(height: 30),
                   ],
                 ),

@@ -25,9 +25,7 @@ class LoginTypeEmailView extends StatelessWidget {
             );
       },
       onBack: () {
-        context
-            .read<AuthBloc>()
-            .add(const AuthEventSeekMain(shouldSkipButtonGlow: false));
+        context.read<AuthBloc>().add(const AuthEventSeekMain());
       },
     );
   }

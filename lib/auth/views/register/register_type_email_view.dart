@@ -23,11 +23,7 @@ class RegisterTypeEmailView extends StatelessWidget {
               ),
             );
       },
-      onBack: () {
-        context
-            .read<AuthBloc>()
-            .add(const AuthEventSeekMain(shouldSkipButtonGlow: false));
-      },
+      onBack: () => context.read<AuthBloc>().add(const AuthEventSeekMain()),
     );
   }
 }
