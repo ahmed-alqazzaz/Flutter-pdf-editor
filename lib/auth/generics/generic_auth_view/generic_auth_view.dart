@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,8 @@ import 'package:pdf_editor/helpers/loading/loading_screen.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
+import '../../bloc/enums/auth_type.dart';
+import '../../views/error_messages.dart';
 
 class GenericAuthView extends StatefulWidget {
   const GenericAuthView({
@@ -42,6 +45,30 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
   late Timer? timer;
 
   @override
+  void initState() {
+    timerStreamController.sink.add(null);
+    // when directly making the textfield auto focus, overflow error occurs
+    // this error occurs because the keyboard will be displayed in the previous page during the navigation
+    // the following ensures that the transition is over and the authbloc is defined then enables autofocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 300)).then((value) {
+        _focusNode.requestFocus();
+      });
+    });
+
+    _controller = TextEditingController();
+
+    _focusNode = FocusNode();
+
+    _controller.addListener(textFieldListener);
+    timerStreamController.stream.listen((event) {
+      timer = event;
+    });
+    timerStreamController.sink.add(null);
+    super.initState();
+  }
+
+  @override
   void didChangeDependencies() {
     authBloc = context.read<AuthBloc>();
 
@@ -52,6 +79,7 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
   void dispose() {
     _focusNode.dispose();
     _controller.dispose();
+    LoadingScreen().hide();
     super.dispose();
   }
 
@@ -108,30 +136,6 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
   }
 
   @override
-  void initState() {
-    timerStreamController.sink.add(null);
-    // when directly making the textfield auto focus, overflow error occurs
-    // this error occurs because the keyboard will be displayed in the previous page during the navigation
-    // the following ensures that the transition is over and the authbloc is defined then enables autofocus
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 300)).then((value) {
-        _focusNode.requestFocus();
-      });
-    });
-
-    _controller = TextEditingController();
-
-    _focusNode = FocusNode();
-
-    _controller.addListener(textFieldListener);
-    timerStreamController.stream.listen((event) {
-      timer = event;
-    });
-    timerStreamController.sink.add(null);
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listenWhen: (previousState, currentState) {
@@ -157,16 +161,21 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
       listener: (context, state) {
         if (state is AuthStateTypingPassword) {
           if (state.isLoading == true) {
-            LoadingScreen().show(context: context, text: "Signing in...");
+            final loadingMessage = state.authType == AuthType.register
+                ? "Registering..."
+                : "Signing in...";
+            LoadingScreen().show(context: context, text: loadingMessage);
           } else {
             LoadingScreen().hide();
           }
 
           if (state.exception != null) {
-            // TODO: custom error messages
+            final errorMessage =
+                errorMessages[state.exception.runtimeType] ?? "Unknown error";
+            log(state.exception.toString());
             showErrorMessage(
               context: context,
-              text: "something went wrong",
+              text: errorMessage,
               duration: const Duration(seconds: 3),
             );
           }

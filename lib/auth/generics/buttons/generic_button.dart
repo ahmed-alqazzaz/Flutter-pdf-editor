@@ -41,3 +41,33 @@ class GenericButton extends StatelessWidget {
     );
   }
 }
+
+class GenericButtonn extends StatelessWidget {
+  const GenericButtonn({
+    super.key,
+    this.backgroundColor,
+    required this.child,
+    required this.onPressed,
+    this.padding,
+    required this.border,
+  });
+
+  final MaterialStateProperty<Color?>? backgroundColor;
+  final Widget child;
+  final EdgeInsets? padding;
+  final RoundedRectangleBorder border;
+  final void Function()? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      style: ButtonStyle(
+        backgroundColor: backgroundColor,
+        padding: MaterialStateProperty.all(padding),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(border),
+      ),
+      onPressed: onPressed,
+      child: child,
+    );
+  }
+}
