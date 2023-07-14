@@ -1,51 +1,53 @@
-import 'dart:developer';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf_editor/homepage/views/tools/generic_tool_view.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../../crud/pdf_db_manager/data/data.dart';
+import '../../../../utils/request_directory.dart';
 import '../../generics/select_pages_view/select_pages_view.dart';
 
 class DiscardPagesView extends ToolView {
-  const DiscardPagesView({super.key, required this.file});
+  DiscardPagesView({
+    super.key,
+    required this.file,
+    required this.onProceed,
+    required this.generatedFileName,
+  });
 
   final PdfFile file;
+  final String generatedFileName;
+  final Function(File) onProceed;
   static const String _title = 'Discard pages';
   static const String _proceedButtonTitle = 'DISCARD';
 
+  void discardPages(
+      {required BuildContext context,
+      required WidgetRef ref,
+      required List<int> discardedPages}) {
+    requestDirectory().then((directory) async {
+      onExit(context, ref);
+      if (directory != null) {
+        onProceed(
+          await pdfManipulator.discardPages(
+            filePath: file.path,
+            targetPath: '${directory.path}/$generatedFileName',
+            pageNumbers: discardedPages,
+          ),
+        );
+      }
+    });
+  }
+
   @override
-  Widget body() {
+  Widget body(BuildContext context, WidgetRef ref) {
     return GenericSelectPagesView(
       file: file,
       title: _title,
       proceedButtonTitle: _proceedButtonTitle,
-      onProceed: (indexes) async {
-        await Permission.storage.request();
-
-        final destinationDirectory =
-            await FilePicker.platform.getDirectoryPath();
-
-        if (destinationDirectory != null) {
-          // Check if the destination directory exists
-          if (Directory(destinationDirectory).existsSync()) {
-            // Create the directory if it doesn't exist
-            final dir = Directory(destinationDirectory)
-              ..createSync(recursive: true);
-            final destinationLocation = '${dir.path}/hhh.pdf';
-            final filee = File(destinationLocation);
-            if (!filee.existsSync()) {
-              filee.writeAsBytesSync(File(file.path).readAsBytesSync());
-            } else {
-              throw UnimplementedError();
-            }
-            print('executed');
-          }
-        }
+      onProceed: (indexes, ref) {
+        discardPages(context: context, ref: ref, discardedPages: indexes);
       },
     );
   }

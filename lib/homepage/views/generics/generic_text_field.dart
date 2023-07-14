@@ -11,6 +11,8 @@ class GenericHomePageTextField extends StatelessWidget {
     this.suffixIcon,
     this.hintText,
     this.autoFocus = false,
+    this.contentPadding =
+        const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
     this.labelText,
     this.textInputType,
   });
@@ -22,11 +24,10 @@ class GenericHomePageTextField extends StatelessWidget {
   final String? hintText;
   final String? labelText;
   final TextInputType? textInputType;
+  final EdgeInsets contentPadding;
   final bool autoFocus;
   final void Function(String)? onChanged;
 
-  static const contentPadding =
-      EdgeInsets.symmetric(vertical: 12, horizontal: 20);
   @override
   Widget build(BuildContext context) {
     return TextField(

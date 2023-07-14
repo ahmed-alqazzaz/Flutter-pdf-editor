@@ -1,18 +1,11 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:pdf_editor/helpers/custom_icons.dart/custom_icons.dart';
-import 'package:pdf_editor/homepage/views/generics/app_bars/generic_app_bar.dart';
 import 'package:pdf_editor/homepage/views/generics/selectable/selectability_provider.dart';
 import 'package:pdf_editor/homepage/views/tools/generics/select_pages_view/widgets/selectable_pdf_page.dart';
 import 'package:pdf_editor/homepage/views/tools/generics/select_pages_view/widgets/select_page_expansion_tile.dart';
 import 'package:pdf_editor/homepage/views/tools/generics/selection_view/selection_view.dart';
-import 'package:pdf_editor/homepage/views/tools/generics/selection_view/widgets/selection_view_button.dart';
-
 import '../../../../../crud/pdf_db_manager/data/data.dart';
-import '../../../../../crud/pdf_to_image_converter/data.dart';
+import '../../../../../pdf_renderer/data.dart';
 
 class GenericSelectPagesView extends SelectionView {
   const GenericSelectPagesView({
@@ -49,8 +42,8 @@ class GenericSelectPagesView extends SelectionView {
             ],
           );
         }
-        return Column(
-          children: const [
+        return const Column(
+          children: [
             LinearProgressIndicator(),
           ],
         );
@@ -59,7 +52,7 @@ class GenericSelectPagesView extends SelectionView {
   }
 
   Widget selectablePdfPages({
-    required Map<int, PageImage> pages,
+    required List<CachedPage> pages,
     int pagesPerRow = 3,
   }) {
     return GridView.builder(
@@ -68,11 +61,11 @@ class GenericSelectPagesView extends SelectionView {
         crossAxisCount: pagesPerRow,
         crossAxisSpacing: 5,
         mainAxisSpacing: 5,
-        childAspectRatio: pages[1]!.size.aspectRatio,
+        childAspectRatio: pages[1].size.aspectRatio,
       ),
       itemBuilder: (context, index) {
         return SelectablePdfPage(
-          imagePath: pages[index + 1]!.path,
+          imagePath: pages[index].path,
           index: index + 1,
         );
       },

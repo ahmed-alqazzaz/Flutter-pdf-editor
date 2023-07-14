@@ -38,7 +38,7 @@ class _FilesAppBarState extends State<FilesAppBar> {
     super.dispose();
   }
 
-  IconButton leading() {
+  IconButton leading(BuildContext context) {
     if (_isSearching) {
       return IconButton(
         icon: const Icon(Icons.arrow_back_outlined),
@@ -47,7 +47,9 @@ class _FilesAppBarState extends State<FilesAppBar> {
     }
     return IconButton(
       icon: const Icon(Icons.menu),
-      onPressed: () {},
+      onPressed: () {
+        Scaffold.of(context).openDrawer();
+      },
     );
   }
 
@@ -111,7 +113,7 @@ class _FilesAppBarState extends State<FilesAppBar> {
   Widget build(BuildContext context) {
     return WillPopScope(
       child: GenericHomePageAppBar(
-        leading: leading(),
+        leading: leading(context),
         title: title(),
         actions: actions(),
       ),

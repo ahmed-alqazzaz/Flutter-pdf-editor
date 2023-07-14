@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pdf_editor/homepage/views/generics/dialogs/sign_out_dialog.dart';
+
+import '../../../bloc/app_bloc.dart';
 
 class HomePageDrawer extends StatelessWidget {
   factory HomePageDrawer({required String email}) {
@@ -7,27 +11,30 @@ class HomePageDrawer extends StatelessWidget {
         Option(
           icon: Icons.arrow_outward_outlined,
           title: 'Account',
-          onPressed: () {},
+          onPressed: (context) {},
         ),
         Option(
           title: "Log Out",
           icon: Icons.logout_sharp,
-          onPressed: () {},
+          onPressed: (context) async => await showSignOutDialog(
+            context: context,
+            onProceed: () async => await context.read<AppBloc>().signOut(),
+          ),
         ),
         Option(
           icon: Icons.star_border_sharp,
           title: 'Rate the app',
-          onPressed: () {},
+          onPressed: (context) {},
         ),
         Option(
           icon: Icons.arrow_forward_outlined,
           title: 'Report a bug',
-          onPressed: () {},
+          onPressed: (context) {},
         ),
         Option(
           icon: Icons.arrow_forward_outlined,
           title: 'Privacy and terms',
-          onPressed: () {},
+          onPressed: (context) {},
         ),
       ],
       email: email,
@@ -40,23 +47,27 @@ class HomePageDrawer extends StatelessWidget {
   final String email;
 
   Widget _profilePictureBuilder() {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.amber.shade600,
-      ),
-      child: Center(
-        child: Text(
-          email.substring(0, 2).toUpperCase(),
-          style: const TextStyle(
-            fontSize: 30,
-            color: Colors.white,
+    return Builder(builder: (context) {
+      final currentUser = context.read<AppBloc>().currentUser;
+
+      return Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.amber.shade600,
+        ),
+        child: Center(
+          child: Text(
+            currentUser?.email?.substring(0, 2).toUpperCase() ?? "",
+            style: const TextStyle(
+              fontSize: 30,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Padding _emailBuilder() {
@@ -70,19 +81,23 @@ class HomePageDrawer extends StatelessWidget {
   }
 
   Widget _optionBuilder(Option option) {
-    return RawMaterialButton(
-      constraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-      onPressed: option.onPressed,
-      child: ListTile(
-        title: Text(
-          option.title,
-          style: const TextStyle(fontWeight: FontWeight.w400),
-        ),
-        trailing: Icon(
-          option.icon,
-          color: Colors.black.withOpacity(0.7),
-        ),
-      ),
+    return Builder(
+      builder: (context) {
+        return RawMaterialButton(
+          constraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+          onPressed: () => option.onPressed(context),
+          child: ListTile(
+            title: Text(
+              option.title,
+              style: const TextStyle(fontWeight: FontWeight.w400),
+            ),
+            trailing: Icon(
+              option.icon,
+              color: Colors.black.withOpacity(0.7),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -121,10 +136,13 @@ class HomePageDrawer extends StatelessWidget {
 
 @immutable
 class Option {
-  const Option(
-      {required this.title, required this.icon, required this.onPressed});
+  const Option({
+    required this.title,
+    required this.icon,
+    required this.onPressed,
+  });
 
   final IconData icon;
-  final void Function() onPressed;
+  final void Function(BuildContext context) onPressed;
   final String title;
 }

@@ -20,14 +20,19 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
       stream: indexController.stream,
       builder: (context, snapshot) {
         if (snapshot.data == 1) {
-          return const GenericHomePageAppBar(
-            title: Text(
+          return GenericHomePageAppBar(
+            title: const Text(
               'Tools',
               style: TextStyle(
                 color: GenericHomePageAppBar.titleTextColor,
               ),
             ),
-            leading: Icon(Icons.menu),
+            leading: IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            ),
           );
         }
         return FilesAppBar(onQueryUpdated: onSearchQueryUpdate);

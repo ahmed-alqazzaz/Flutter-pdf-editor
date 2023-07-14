@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pdf_editor/homepage/views/files_view/drawer.dart';
 
 import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_app_bar.dart';
 import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_navigation_bar.dart';
@@ -76,12 +77,15 @@ class _HomePageViewState extends State<HomePageView> {
           }
         },
       ),
+      drawer: HomePageDrawer(
+        email: 'stevehighly@usa.com',
+      ),
       body: PageView(
         onPageChanged: (value) => _currentPageController.add(value),
         controller: _pageController,
-        children: const [
-          HomePageFilesView(),
-          HomePageToolsView(),
+        children: [
+          const HomePageFilesView(),
+          HomePageToolsView(context),
         ],
       ),
     );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pdf_editor/helpers/custom_icons.dart/custom_icons.dart';
 
 @immutable
 class Tool {
@@ -10,5 +9,5 @@ class Tool {
   });
   final IconData icon;
   final String text;
-  final void Function(BuildContext) onTap;
+  final void Function() onTap;
 }

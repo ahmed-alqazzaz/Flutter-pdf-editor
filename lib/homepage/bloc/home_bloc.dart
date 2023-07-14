@@ -1,3 +1,5 @@
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/crud/pdf_db_manager/pdf_files_manager.dart';
 
@@ -23,13 +25,23 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
     );
 
     on<HomePageEventAddFile>(
-      (event, emit) async => await pdfFilesManager.addFile(event.file).then(
+      (event, emit) async {
+        await pdfFilesManager.addFile(event.file).then(
+              (_) => add(const HomePageEventDisplayFiles()),
+            );
+        FilePicker.platform.clearTemporaryFiles();
+      },
+    );
+    on<HomePageEventUpdateFile>(
+      (event, emit) async => await pdfFilesManager.updateFile(event.file).then(
             (_) => add(const HomePageEventDisplayFiles()),
           ),
     );
-    on<HomePageEventUpdateFile>((event, emit) {
-      pdfFilesManager.updateFile(event.file);
-    });
+    on<HomePageEventDeleteFile>(
+      (event, emit) async => await pdfFilesManager.deleteFile(event.file).then(
+            (_) => add(const HomePageEventDisplayFiles()),
+          ),
+    );
   }
 
   @override

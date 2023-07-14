@@ -7,44 +7,54 @@ import '../../../../../crud/pdf_db_manager/data/data.dart';
 import '../../../generics/selectable/selectability_provider.dart';
 
 class SelectFilesView extends SelectionView {
-  const SelectFilesView({
+  SelectFilesView({
     super.key,
     required this.files,
-    required super.title,
-    required super.proceedButtonTitle,
-    required this.onPdfFileCached,
-    required super.onProceed,
-  });
+    required Function(List<int>) onProceed,
+  }) : super(
+            title: 'Select',
+            proceedButtonTitle: 'Select File',
+            onProceed: (List<int> selectedFiles, WidgetRef ref) {
+              ref.read(selectabilityProvider).clear();
+              onProceed(selectedFiles);
+            });
 
   final List<PdfFile> files;
-  final Function(PdfFile) onPdfFileCached;
 
   @override
   Widget body(WidgetRef ref) {
-    ref.read(selectabilityProvider).setIndexCount(files.length);
-    return ListView.builder(
-      itemCount: files.length,
-      itemBuilder: (BuildContext context, int index) {
-        final file = files[index];
-        return PdfFileListTile(
-          file: file,
-          onFileCached: onPdfFileCached,
-          trailing: Consumer(
-            builder: (context, ref, child) {
-              final isSelected = ref.watch(selectabilityProvider.select(
-                (selectabilityModel) =>
-                    selectabilityModel.selectedIndexes.contains(index),
-              ));
-              return Checkbox(
-                value: isSelected,
-                onChanged: (value) {
-                  ref.read(selectabilityProvider).onTap(index);
-                },
-              );
-            },
-          ),
-        );
+    ref.read(selectabilityProvider).setIndexCount(files.length + 1);
+    return WillPopScope(
+      onWillPop: () async {
+        ref.read(selectabilityProvider).clear();
+        return true;
       },
+      child: Consumer(builder: (context, ref, _) {
+        ref.watch(selectabilityProvider);
+        return ListView.builder(
+          itemCount: files.length,
+          itemBuilder: (BuildContext context, int index) {
+            final file = files[index];
+            return PdfFileListTile(
+              file: file,
+              trailing: Consumer(
+                builder: (context, ref, child) {
+                  final isSelected = ref.watch(selectabilityProvider.select(
+                    (selectabilityModel) =>
+                        selectabilityModel.selectedIndexes.contains(index),
+                  ));
+                  return Checkbox(
+                    value: isSelected,
+                    onChanged: (value) {
+                      ref.read(selectabilityProvider).onTap(index);
+                    },
+                  );
+                },
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 }

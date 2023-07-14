@@ -46,7 +46,7 @@ class Selectable extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isSelected = ref.watch(
       selectabilityProvider.select(
-        (value) => value.selectedIndexes.contains(index - 1),
+        (value) => value.selectedIndexes.contains(index),
       ),
     );
     return LayoutBuilder(

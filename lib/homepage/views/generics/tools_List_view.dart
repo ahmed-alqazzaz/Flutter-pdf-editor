@@ -31,7 +31,7 @@ class ToolsListView extends StatelessWidget {
       itemCount: tools.length,
       itemBuilder: (context, index) {
         return TextButton(
-          onPressed: () => tools[index].onTap(context),
+          onPressed: () => tools[index].onTap(),
           child: ListTile(
             visualDensity: VisualDensity(vertical: tileVisualDensity),
             title: Text(tools[index].text),

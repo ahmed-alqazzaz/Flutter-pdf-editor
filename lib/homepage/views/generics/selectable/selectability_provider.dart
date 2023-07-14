@@ -4,14 +4,13 @@ import 'package:pdf_editor/homepage/utils/range_utils.dart';
 
 class SelectabilityModel extends ChangeNotifier {
   SelectabilityModel();
-
   final _selectedIndexes = <int>[];
   List<int> get selectedIndexes => List.unmodifiable(_selectedIndexes);
 
   int? _indexCount;
   int? get indexCount => _indexCount;
   void setIndexCount(int count) {
-    _indexCount ??= count;
+    _indexCount = count;
   }
 
   void addIndex(int index) => _selectedIndexes.add(index);

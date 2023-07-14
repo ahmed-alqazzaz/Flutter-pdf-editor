@@ -20,3 +20,8 @@ class HomePageEventUpdateFile extends HomePageEvent {
   final PdfFile file;
   const HomePageEventUpdateFile(this.file);
 }
+
+class HomePageEventDeleteFile extends HomePageEvent {
+  final PdfFile file;
+  const HomePageEventDeleteFile(this.file);
+}

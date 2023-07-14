@@ -1,24 +1,29 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pdf_editor/homepage/views/tools/generics/selection_view/widgets/selection_view_appbar.dart';
 
+import '../../../crud/pdf_manipulator/pdf_manipulator.dart';
 import '../generics/selectable/selectability_provider.dart';
-import 'generics/selection_view/widgets/selection_view_button.dart';
 
-abstract class ToolView extends StatelessWidget {
-  const ToolView({super.key});
+abstract class ToolView extends ConsumerWidget {
+  ToolView({super.key}) : pdfManipulator = PDFManipulator();
 
-  Widget body();
+  final PDFManipulator pdfManipulator;
 
+  void onExit(BuildContext context, WidgetRef ref) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    ref.read(selectabilityProvider).clear();
+  }
+
+  Widget body(BuildContext context, WidgetRef ref);
   @override
-  Widget build(BuildContext context) {
-    return ProviderScope(
-      overrides: [
-        selectabilityProvider.overrideWith(
-          (ref) => SelectabilityModel(),
-        )
-      ],
-      child: body(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return WillPopScope(
+      child: body(context, ref),
+      onWillPop: () async {
+        onExit(context, ref);
+        return false;
+      },
     );
   }
 }

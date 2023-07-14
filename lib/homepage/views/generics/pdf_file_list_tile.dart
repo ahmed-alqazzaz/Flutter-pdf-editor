@@ -1,11 +1,10 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pdf_editor/crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 import 'package:pdf_editor/homepage/bloc/home_bloc.dart';
 import 'package:pdf_editor/homepage/bloc/home_events.dart';
+import 'package:pdf_editor/pdf_renderer/renderer.dart';
 
 import '../../../crud/pdf_db_manager/data/data.dart';
 
@@ -13,7 +12,6 @@ class PdfFileListTile extends StatelessWidget {
   const PdfFileListTile({
     super.key,
     required this.file,
-    required this.onFileCached,
     this.trailing,
   });
   static const double contentLeftPadding = 16;
@@ -26,7 +24,6 @@ class PdfFileListTile extends StatelessWidget {
   static const int coverImageLoadingThreshold = 1500;
 
   final PdfFile file;
-  final void Function(PdfFile)? onFileCached;
   final Widget? trailing;
 
   Widget titleGenerator() {
@@ -56,7 +53,6 @@ class PdfFileListTile extends StatelessWidget {
   Widget coverImageGenerator(HomePageBloc bloc) {
     final coverImagePath = file.coverPagePath;
     final isPathAvailable = coverImagePath != null;
-    log('path is $isPathAvailable');
     if (isPathAvailable) {
       return ClipRRect(
           borderRadius: BorderRadius.circular(coverImageBorderRadius),
@@ -69,26 +65,18 @@ class PdfFileListTile extends StatelessWidget {
           ));
     }
     return FutureBuilder<String>(
-      future: PdfToImage.open(file.path).then(
-        (converter) async {
-          await converter.close();
-          return converter.coverImage.then(
-            (image) async {
-              final coverImagePath = image.path;
-              log(coverImagePath);
-              bloc.add(
-                HomePageEventUpdateFile(
-                  file.copyWith(coverPagePath: coverImagePath),
-                ),
-              );
-              return image.path;
-            },
+      future: PdfRenderer.open(file.path).then(
+        (converter) {
+          bloc.add(
+            HomePageEventUpdateFile(
+              file.copyWith(coverPagePath: converter.coverImage.path),
+            ),
           );
+          return converter.coverImage.path;
         },
       ),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          if (onFileCached != null) onFileCached!(file);
           return ClipRRect(
               borderRadius: BorderRadius.circular(coverImageBorderRadius),
               child: AspectRatio(

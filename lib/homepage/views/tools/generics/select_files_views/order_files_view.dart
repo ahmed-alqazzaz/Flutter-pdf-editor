@@ -1,7 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/src/consumer.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf_editor/homepage/views/tools/generics/selection_view/selection_view.dart';
 
 import '../../../../../crud/pdf_db_manager/data/data.dart';
@@ -9,21 +7,22 @@ import '../../../generics/pdf_file_list_tile.dart';
 import '../../../generics/selectable/selectability_provider.dart';
 
 class ReorderableFilesView extends SelectionView {
-  const ReorderableFilesView({
+  ReorderableFilesView({
     super.key,
     required super.title,
     required super.proceedButtonTitle,
-    required super.onProceed,
+    required Function(List<int>, WidgetRef) onProceed,
     required this.files,
-    required this.onPdfFileCached,
-  });
+  }) : super(onProceed: (selectedFiles, ref) {
+          ref.read(selectabilityProvider).clear();
+          onProceed(selectedFiles, ref);
+        });
 
   static const instructionMessageColor = Colors.black54;
   static const double instructionMessageMaxWidth = 500;
   static const double instructionMessageHeight = 30;
   static const double instructionMessageVerticalPadding = 10;
   final List<PdfFile> files;
-  final Function(PdfFile) onPdfFileCached;
   Widget instructionMessage() {
     return Container(
       constraints: const BoxConstraints(
@@ -39,21 +38,24 @@ class ReorderableFilesView extends SelectionView {
     );
   }
 
-  @override
-  Widget body(WidgetRef ref) {
-    // TODO: they should already be selected
-    Timer(const Duration(milliseconds: 500), () {
+  void _initialize(WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       ref.read(selectabilityProvider)
         ..setIndexCount(files.length)
         ..selectMany(List.generate(files.length, (index) => index));
     });
+  }
 
+  @override
+  Widget body(WidgetRef ref) {
+    _initialize(ref);
     return Consumer(
       builder: (context, ref, child) {
         final indexes = ref.watch(
           selectabilityProvider.select((value) => value.selectedIndexes),
         );
         final size = MediaQuery.of(context).size;
+
         return Column(
           children: [
             Padding(
@@ -67,28 +69,28 @@ class ReorderableFilesView extends SelectionView {
                 child: instructionMessage(),
               ),
             ),
-            Expanded(
-              child: ReorderableListView.builder(
-                itemCount: files.length,
-                onReorder: ref.read(selectabilityProvider).swapIndexes,
-                itemBuilder: (context, index) {
-                  final file = files[indexes[index]];
-
-                  return PdfFileListTile(
-                    key: Key(index.toString()),
-                    file: file,
-                    onFileCached: onPdfFileCached,
-                    trailing: Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: ReorderableDragStartListener(
-                        index: index,
-                        child: const Icon(Icons.drag_handle),
+            if (indexes.isNotEmpty) ...[
+              Expanded(
+                child: ReorderableListView.builder(
+                  itemCount: files.length,
+                  onReorder: ref.read(selectabilityProvider).swapIndexes,
+                  itemBuilder: (context, index) {
+                    final file = files[indexes[index]];
+                    return PdfFileListTile(
+                      key: Key(index.toString()),
+                      file: file,
+                      trailing: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(Icons.drag_handle),
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
+            ]
           ],
         );
       },

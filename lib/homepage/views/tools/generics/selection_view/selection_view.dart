@@ -15,7 +15,7 @@ abstract class SelectionView extends ConsumerWidget {
   static const double proceedButtonToScreenWidthRatio = 0.85;
   final String title;
   final String proceedButtonTitle;
-  final void Function(List<int>) onProceed;
+  final void Function(List<int>, WidgetRef) onProceed;
 
   Widget body(WidgetRef ref);
   bool get showAppbarActions => true;
@@ -38,7 +38,7 @@ abstract class SelectionView extends ConsumerWidget {
             width: screenWidth * proceedButtonToScreenWidthRatio,
             child: GenericSelectionViewButton(
               title: proceedButtonTitle,
-              onPressed: onProceed,
+              onPressed: (files) => onProceed(files, ref),
             ),
           ),
           Expanded(
