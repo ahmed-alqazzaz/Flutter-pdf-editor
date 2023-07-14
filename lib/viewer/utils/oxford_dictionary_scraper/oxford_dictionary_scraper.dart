@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:beautiful_soup_dart/beautiful_soup.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lemmatizerx/lemmatizerx.dart';

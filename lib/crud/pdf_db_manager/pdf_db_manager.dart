@@ -28,7 +28,9 @@ class PdfDbManager {
 
   Future<void> updateFile(final PdfFile file, final int fileId) async {
     if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
-
+    log((await _db.query(filesTable)).toString());
+    log(fileId.toString());
+    log(file.coverPagePath.toString());
     await _db.update(
       filesTable,
       {
@@ -55,19 +57,34 @@ class PdfDbManager {
     }
   }
 
-  Future<void> deleteFiles(final int fileId) async {
+  Future<void> deleteFiles(final String filePath) async {
     if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
+
     await _db.delete(
       filesTable,
-      where: '$idColumn = ?',
-      whereArgs: [fileId],
+      where: '$filePathColumn = ?',
+      whereArgs: [filePath],
     );
+  }
+
+  Future<int> retrieveid(PdfFile file) async {
+    return await _db
+        .query(
+      filesTable,
+      columns: [idColumn],
+      where:
+          '$filePathColumn = ? OR $fileCoverPagePathColumn = ? OR $downloadDateColumn = ?',
+      whereArgs: [file.path, file.coverPagePath, file.uploadDate.toString()],
+    )
+        .then((result) {
+      assert(result.length == 1, 'retrived ids must be less than 2');
+      return result[0][idColumn] as int;
+    });
   }
 
   Future<Iterable<PdfFile>> retrieveFiles() async {
     if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
     return await _db.query(filesTable).then((result) {
-      log(result.length.toString());
       return result.map((row) {
         return PdfFile.fromRow(row);
       });

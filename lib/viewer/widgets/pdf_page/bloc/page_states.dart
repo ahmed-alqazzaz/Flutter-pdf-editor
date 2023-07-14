@@ -1,8 +1,9 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:ui' as ui;
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-
-import 'dart:ui' as ui;
 
 import 'data.dart';
 
@@ -41,4 +42,18 @@ class PageStateDisplayMain extends PageState {
         mainImage,
         highResolutionPatch,
       ];
+
+  PageStateDisplayMain copyWith({
+    ui.Image? mainImage,
+    double? scaleFactor,
+    RecognizedText? extractedText,
+    HighResolutionPatch? highResolutionPatch,
+  }) {
+    return PageStateDisplayMain(
+      mainImage: mainImage ?? this.mainImage,
+      scaleFactor: scaleFactor ?? this.scaleFactor,
+      extractedText: extractedText ?? this.extractedText,
+      highResolutionPatch: highResolutionPatch ?? this.highResolutionPatch,
+    );
+  }
 }

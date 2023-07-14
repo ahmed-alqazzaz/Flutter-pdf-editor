@@ -22,7 +22,8 @@ class WordExplanationBody extends ConsumerWidget {
     final wordsExplanationController = ref.watch(wordExplanationProvider);
     final explanationCardsPageViewHeight = modalHeight -
         ExplanationModalNavigationBar.height -
-        WordExplanationModalView.expansionPanelsHeight;
+        WordExplanationModalView.expansionPanelsHeight -
+        16;
     void updateExplanation(Future<Lexicon> explanation) {
       wordsExplanationController
           .words[wordsExplanationController.selectedWordIndex] = explanation;
@@ -45,41 +46,44 @@ class WordExplanationBody extends ConsumerWidget {
             updateExplanation(Future.value(snapshot.data!));
             final mainSenses = snapshot.data!.main?.senses.toList();
             final idioms = snapshot.data!.idioms.toList();
-            return ExpansionPanelBuilder(
-              backgroundColor: WordExplanationModalView.backgroundColor,
-              explanationCardsPageViewHeight: explanationCardsPageViewHeight,
-              children: {
-                ExpansionPanelItem(
-                  header: const ListTile(
-                    title: Text('Definitions'),
+            return Container(
+              color: Colors.white,
+              child: ExpansionPanelBuilder(
+                backgroundColor: WordExplanationModalView.backgroundColor,
+                explanationCardsPageViewHeight: explanationCardsPageViewHeight,
+                children: {
+                  ExpansionPanelItem(
+                    header: const ListTile(
+                      title: Text('Definitions'),
+                    ),
+                    body: mainSenses != null
+                        ? DefinitionCardsPageView(
+                            senses: mainSenses,
+                            pageController:
+                                PageController(viewportFraction: 0.85),
+                          )
+                        : Container(),
                   ),
-                  body: mainSenses != null
-                      ? DefinitionCardsPageView(
-                          senses: mainSenses,
-                          pageController:
-                              PageController(viewportFraction: 0.85),
-                        )
-                      : Container(),
-                ),
 
-                // the framework is being glitchy so I had to include
-                // the idiom panel twice
-                ExpansionPanelItem(
+                  // the framework is being glitchy so I had to include
+                  // the idiom panel twice
+                  ExpansionPanelItem(
+                      header: const ListTile(
+                        title: Text('Idioms'),
+                      ),
+                      body: IdiomsCardsPageView(
+                        idioms: idioms,
+                      )),
+                  ExpansionPanelItem(
                     header: const ListTile(
                       title: Text('Idioms'),
                     ),
                     body: IdiomsCardsPageView(
                       idioms: idioms,
-                    )),
-                ExpansionPanelItem(
-                  header: const ListTile(
-                    title: Text('Idioms'),
+                    ),
                   ),
-                  body: IdiomsCardsPageView(
-                    idioms: idioms,
-                  ),
-                ),
-              }.toList(),
+                }.toList(),
+              ),
             );
           }
           return const Center(

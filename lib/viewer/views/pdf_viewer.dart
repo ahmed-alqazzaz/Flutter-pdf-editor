@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 
@@ -12,7 +11,6 @@ import 'package:pdf_editor/bloc/app_states.dart';
 import 'package:pdf_editor/viewer/providers/pdf_viewer_related/appbars_visibility_provider.dart';
 
 import 'package:pdf_editor/viewer/providers/pdf_viewer_related/scroll_controller_provider.dart';
-import 'package:pdf_editor/viewer/utils/get_args.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page.dart';
 
 import '../utils/viewport_controller.dart';

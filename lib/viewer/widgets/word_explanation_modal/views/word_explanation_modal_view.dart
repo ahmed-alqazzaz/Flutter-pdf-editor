@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pdf_editor/viewer/providers/word_explanation_modal_related/word_explanation_provider.dart';
-import 'package:pdf_editor/viewer/utils/oxford_dictionary_scraper/data/data.dart';
 
 import 'package:pdf_editor/viewer/widgets/word_explanation_modal/views/modal_navigation_bar.dart';
 import 'package:pdf_editor/viewer/widgets/word_explanation_modal/views/word_explanation_body.dart';
@@ -39,11 +38,8 @@ class WordExplanationModalView extends StatelessWidget {
       height: size.height,
       width: size.width,
       child: FutureBuilder(
-        future: scraper.search(['go']),
+        future: scraper.search(words),
         builder: (context, snapshot) {
-          snapshot.data?.first.similarWords.forEach((element) {
-            print(element.text);
-          });
           if (snapshot.error is WordLoadingException) {
             return const Text("Connection Error");
           } else if (snapshot.error is WordUnavailableException) {

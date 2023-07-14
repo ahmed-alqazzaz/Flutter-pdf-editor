@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pdf_editor/crud/pdf_db_manager/pdf_files_manager.dart';
-import 'package:pdf_editor/crud/pdf_to_image_converter/data.dart';
+import 'package:pdf_editor/pdf_renderer/renderer.dart';
 
-import '../../pdf_to_image_converter/pdf_to_image_converter.dart';
+import '../../../pdf_renderer/data.dart';
 import 'constants.dart';
 
 @immutable
@@ -21,10 +20,16 @@ class PdfFile {
         coverPagePath = row[fileCoverPagePathColumn] as String?,
         uploadDate = DateTime.parse(row[downloadDateColumn] as String);
 
-  Future<Map<int, PageImage>> get pages async =>
-      await PdfToImage.open(path).then(
+  Future<List<CachedPage>> get pages async => await PdfRenderer.open(path).then(
         (converter) => converter.cache,
       );
+
+  PdfFile updateName(String newName) {
+    final filePath = (path.split('/')..last = '$newName.pdf');
+    return copyWith(
+      path: filePath.join('/'),
+    );
+  }
 
   String get name => path.split('/').last;
   PdfFile copyWith(
@@ -33,8 +38,26 @@ class PdfFile {
       bool? isCached,
       String? coverPagePath}) {
     return PdfFile(
-        path: path ?? this.path,
-        uploadDate: uploadDate ?? this.uploadDate,
-        coverPagePath: coverPagePath ?? this.coverPagePath);
+      path: path ?? this.path,
+      uploadDate: uploadDate ?? this.uploadDate,
+      coverPagePath: coverPagePath != null ? coverPagePath : this.coverPagePath,
+    );
   }
+
+  @override
+  String toString() =>
+      'PdfFile(path: $path, coverPagePath: $coverPagePath, uploadDate: $uploadDate)';
+
+  @override
+  bool operator ==(covariant PdfFile other) {
+    if (identical(this, other)) return true;
+
+    return other.path == path &&
+        other.coverPagePath == coverPagePath &&
+        other.uploadDate == uploadDate;
+  }
+
+  @override
+  int get hashCode =>
+      path.hashCode ^ coverPagePath.hashCode ^ uploadDate.hashCode;
 }

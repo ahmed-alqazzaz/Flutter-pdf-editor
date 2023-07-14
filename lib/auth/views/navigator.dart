@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/auth/views/main_auth/main_auth_view.dart';
 import 'package:pdf_editor/auth/views/register/register_type_email_view.dart';
 import 'package:pdf_editor/auth/views/register/register_type_password_view.dart';
-
-import '../../helpers/loading/loading_screen.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_state.dart';
 import '../bloc/enums/auth_type.dart';

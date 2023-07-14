@@ -35,7 +35,7 @@ class OxfordDictionarySoupParser {
               text: (similarWord.find('span')!.text.split(" ")..removeLast())
                   .join(' '),
               link: similarWord.find('a')!.getAttrValue('href')!,
-              pos: similarWord.find('pos-g')!.text,
+              pos: similarWord.find('pos-g')?.text ?? "",
             ),
           ) ??
           [],

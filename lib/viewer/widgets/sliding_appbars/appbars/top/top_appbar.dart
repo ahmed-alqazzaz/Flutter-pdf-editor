@@ -6,7 +6,7 @@ import '../../../../providers/pdf_viewer_related/appbars_visibility_provider.dar
 import '../../generic_sliding_appbar.dart';
 import 'appbar_popup_menu_button.dart/appbar_popup_menu_button.dart';
 
-class TopAppBar extends ConsumerWidget with PreferredSizeWidget {
+class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const TopAppBar({super.key, required this.tabNumber});
 
   final int tabNumber;

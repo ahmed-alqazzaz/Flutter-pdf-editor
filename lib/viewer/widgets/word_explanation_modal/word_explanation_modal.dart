@@ -5,9 +5,7 @@ import 'package:lemmatizerx/lemmatizerx.dart';
 import 'package:pdf_editor/viewer/widgets/word_explanation_modal/views/word_explanation_modal_view.dart';
 
 import '../../utils/oxford_dictionary_scraper/helpers/oxford_dictionary_api_client.dart';
-import '../../utils/oxford_dictionary_scraper/helpers/oxford_dictionary_soup_parser.dart';
 import '../../utils/oxford_dictionary_scraper/oxford_dictionary_scraper.dart';
-import '../pdf_page/pdf_page_gesture_detector/pdf_page_gesture_detector.dart';
 import 'helpers/contractions/contractions.dart';
 
 class WordExplanationModal {

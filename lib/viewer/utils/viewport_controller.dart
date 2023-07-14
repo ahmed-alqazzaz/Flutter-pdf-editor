@@ -17,7 +17,6 @@ class ViewportController {
     _vieweportUpdatingTimer = Timer(
       const Duration(milliseconds: 300),
       () {
-        log(pdfPageKeys.length.toString());
         for (int pageNumber = 0;
             pageNumber < pdfPageKeys.length;
             pageNumber++) {

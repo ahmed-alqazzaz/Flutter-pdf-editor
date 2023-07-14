@@ -1,20 +1,20 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:pdf_editor/viewer/widgets/pdf_page/pdf_page_gesture_detector/pdf_page_gesture_detector.dart';
 import 'package:pdf_editor/viewer/widgets/pdf_page/word_highlight.dart';
 
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../../pdf_renderer/renderer.dart';
 import '../../providers/pdf_viewer_related/word_interaction_provider.dart';
 import 'bloc/page_bloc.dart';
 import 'bloc/page_states.dart';
-import '../../crud/pdf_to_image_converter/pdf_to_image_converter.dart';
 
 class PdfPageView extends StatefulWidget {
   const PdfPageView({
@@ -24,7 +24,7 @@ class PdfPageView extends StatefulWidget {
   });
 
   final int pageNumber;
-  final PdfToImage pdfToImageConverter;
+  final PdfRenderer pdfToImageConverter;
   @override
   State<PdfPageView> createState() => PdfPageViewState();
 }
@@ -62,14 +62,15 @@ class PdfPageViewState extends State<PdfPageView> {
   @override
   void dispose() {
     bloc?.close();
-    widget.pdfToImageConverter.resetCache();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final pdfPage = widget.pdfToImageConverter.cache[widget.pageNumber];
-    final pdfPageSize = widget.pdfToImageConverter.pageSize;
+    final pdfPage = widget.pdfToImageConverter.cache
+        .firstWhere((element) => element.pageNumber == widget.pageNumber);
+    log("path: ${pdfPage.path} ${widget.pageNumber}");
+    final pdfPageSize = pdfPage.size;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenToPdfWidthRatio = screenWidth / pdfPageSize.width;
     final height = pdfPageSize.height * screenToPdfWidthRatio;

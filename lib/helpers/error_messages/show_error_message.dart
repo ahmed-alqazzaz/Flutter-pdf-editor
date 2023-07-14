@@ -20,8 +20,5 @@ void showErrorMessage({
     },
   );
   Overlay.of(context).insert(overlayEntry);
-  print(duration.inMilliseconds);
-  await Future.delayed(duration).then((value) {
-    overlayEntry.remove();
-  });
+  await Future.delayed(duration).then((value) => overlayEntry.remove());
 }

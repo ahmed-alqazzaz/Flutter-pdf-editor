@@ -16,6 +16,10 @@
 ///         Author:    Daniel Bruce
 ///         License:   SIL (http://scripts.sil.org/OFL)
 ///         Homepage:  http://www.entypo.com
+/// * Font Awesome 5, Copyright (C) 2016 by Dave Gandy
+///         Author:    Dave Gandy
+///         License:   SIL (https://github.com/FortAwesome/Font-Awesome/blob/master/LICENSE.txt)
+///         Homepage:  http://fortawesome.github.com/Font-Awesome/
 ///
 import 'package:flutter/widgets.dart';
 
@@ -25,8 +29,15 @@ class CustomIcons {
   static const _kFontFam = 'MyFlutterApp';
   static const String? _kFontPkg = null;
 
-  static const IconData dictionary =
+  static const IconData rename =
       IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData tools =
       IconData(0xe801, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData selectMultiple =
+      IconData(0xe803, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+
+  static const IconData unselect =
+      IconData(0xe802, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData compress =
+      IconData(0xf422, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }
