@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
-import 'package:pdf_editor/rust_generated/ffi.dart';
+import 'package:pdf_editor/pdf_renderer/rust_bridge/ffi.dart';
 
 extension ImageDecoder on PageImage {
   Future<ui.Image> decodeImage() async {

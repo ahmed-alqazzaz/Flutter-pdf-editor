@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../../rust_generated/ffi.dart';
+import '../rust_bridge/ffi.dart';
 
 typedef RustPageImage = PageImage;
 const pdfiumAssetPath = "assets/libpdfium.so";

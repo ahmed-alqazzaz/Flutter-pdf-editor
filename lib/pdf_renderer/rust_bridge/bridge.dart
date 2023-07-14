@@ -35,9 +35,15 @@ abstract class Rust {
   Future<Size> pageSize({required int pageNumber, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kPageSizeConstMeta;
+
+  Future<Uint8List> rgbaToBgraMethodPageImage(
+      {required PageImage that, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kRgbaToBgraMethodPageImageConstMeta;
 }
 
 class PageImage {
+  final Rust bridge;
   final Uint8List data;
   final int pixelWidthCount;
   final int pixelHeightCount;
@@ -45,12 +51,18 @@ class PageImage {
   final RenderRect renderRect;
 
   const PageImage({
+    required this.bridge,
     required this.data,
     required this.pixelWidthCount,
     required this.pixelHeightCount,
     required this.pageNumber,
     required this.renderRect,
   });
+
+  Future<Uint8List> rgbaToBgra({dynamic hint}) =>
+      bridge.rgbaToBgraMethodPageImage(
+        that: this,
+      );
 }
 
 class RenderRect {
@@ -148,7 +160,7 @@ class RustImpl implements Rust {
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
           _platform.inner.wire_render_page(port_, arg0, arg1, arg2),
-      parseSuccessData: _wire2api_page_image,
+      parseSuccessData: (d) => _wire2api_page_image(d),
       constMeta: kRenderPageConstMeta,
       argValues: [pageNumber, scaleFactor, renderRect],
       hint: hint,
@@ -176,6 +188,25 @@ class RustImpl implements Rust {
       const FlutterRustBridgeTaskConstMeta(
         debugName: "page_size",
         argNames: ["pageNumber"],
+      );
+
+  Future<Uint8List> rgbaToBgraMethodPageImage(
+      {required PageImage that, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_page_image(that);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_rgba_to_bgra__method__PageImage(port_, arg0),
+      parseSuccessData: _wire2api_uint_8_list,
+      constMeta: kRgbaToBgraMethodPageImageConstMeta,
+      argValues: [that],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kRgbaToBgraMethodPageImageConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "rgba_to_bgra__method__PageImage",
+        argNames: ["that"],
       );
 
   void dispose() {
@@ -211,6 +242,7 @@ class RustImpl implements Rust {
     if (arr.length != 5)
       throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return PageImage(
+      bridge: this,
       data: _wire2api_uint_8_list(arr[0]),
       pixelWidthCount: _wire2api_u32(arr[1]),
       pixelHeightCount: _wire2api_u32(arr[2]),
@@ -271,6 +303,11 @@ int api2wire_i16(int raw) {
 }
 
 @protected
+int api2wire_u32(int raw) {
+  return raw;
+}
+
+@protected
 int api2wire_u8(int raw) {
   return raw;
 }
@@ -285,6 +322,13 @@ class RustPlatform extends FlutterRustBridgeBase<RustWire> {
   @protected
   ffi.Pointer<wire_uint_8_list> api2wire_String(String raw) {
     return api2wire_uint_8_list(utf8.encoder.convert(raw));
+  }
+
+  @protected
+  ffi.Pointer<wire_PageImage> api2wire_box_autoadd_page_image(PageImage raw) {
+    final ptr = inner.new_box_autoadd_page_image_0();
+    _api_fill_to_wire_page_image(raw, ptr.ref);
+    return ptr;
   }
 
   @protected
@@ -311,6 +355,11 @@ class RustPlatform extends FlutterRustBridgeBase<RustWire> {
 
 // Section: api_fill_to_wire
 
+  void _api_fill_to_wire_box_autoadd_page_image(
+      PageImage apiObj, ffi.Pointer<wire_PageImage> wireObj) {
+    _api_fill_to_wire_page_image(apiObj, wireObj.ref);
+  }
+
   void _api_fill_to_wire_box_autoadd_render_rect(
       RenderRect apiObj, ffi.Pointer<wire_RenderRect> wireObj) {
     _api_fill_to_wire_render_rect(apiObj, wireObj.ref);
@@ -320,6 +369,14 @@ class RustPlatform extends FlutterRustBridgeBase<RustWire> {
       RenderRect? apiObj, ffi.Pointer<wire_RenderRect> wireObj) {
     if (apiObj != null)
       _api_fill_to_wire_box_autoadd_render_rect(apiObj, wireObj);
+  }
+
+  void _api_fill_to_wire_page_image(PageImage apiObj, wire_PageImage wireObj) {
+    wireObj.data = api2wire_uint_8_list(apiObj.data);
+    wireObj.pixel_width_count = api2wire_u32(apiObj.pixelWidthCount);
+    wireObj.pixel_height_count = api2wire_u32(apiObj.pixelHeightCount);
+    wireObj.page_number = api2wire_u8(apiObj.pageNumber);
+    _api_fill_to_wire_render_rect(apiObj.renderRect, wireObj.render_rect);
   }
 
   void _api_fill_to_wire_render_rect(
@@ -514,6 +571,34 @@ class RustWire implements FlutterRustBridgeWireBase {
   late final _wire_page_size =
       _wire_page_sizePtr.asFunction<void Function(int, int)>();
 
+  void wire_rgba_to_bgra__method__PageImage(
+    int port_,
+    ffi.Pointer<wire_PageImage> that,
+  ) {
+    return _wire_rgba_to_bgra__method__PageImage(
+      port_,
+      that,
+    );
+  }
+
+  late final _wire_rgba_to_bgra__method__PageImagePtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_PageImage>)>>(
+      'wire_rgba_to_bgra__method__PageImage');
+  late final _wire_rgba_to_bgra__method__PageImage =
+      _wire_rgba_to_bgra__method__PageImagePtr
+          .asFunction<void Function(int, ffi.Pointer<wire_PageImage>)>();
+
+  ffi.Pointer<wire_PageImage> new_box_autoadd_page_image_0() {
+    return _new_box_autoadd_page_image_0();
+  }
+
+  late final _new_box_autoadd_page_image_0Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<wire_PageImage> Function()>>(
+          'new_box_autoadd_page_image_0');
+  late final _new_box_autoadd_page_image_0 = _new_box_autoadd_page_image_0Ptr
+      .asFunction<ffi.Pointer<wire_PageImage> Function()>();
+
   ffi.Pointer<wire_RenderRect> new_box_autoadd_render_rect_0() {
     return _new_box_autoadd_render_rect_0();
   }
@@ -575,6 +660,21 @@ final class wire_RenderRect extends ffi.Struct {
 
   @ffi.Float()
   external double height;
+}
+
+final class wire_PageImage extends ffi.Struct {
+  external ffi.Pointer<wire_uint_8_list> data;
+
+  @ffi.Uint32()
+  external int pixel_width_count;
+
+  @ffi.Uint32()
+  external int pixel_height_count;
+
+  @ffi.Uint8()
+  external int page_number;
+
+  external wire_RenderRect render_rect;
 }
 
 typedef DartPostCObjectFnType = ffi.Pointer<
