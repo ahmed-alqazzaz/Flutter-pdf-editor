@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:pdf_editor/crud/pdf_db_manager/data/constants.dart';
 import 'package:pdf_editor/crud/pdf_db_manager/data/data.dart';
@@ -28,9 +26,6 @@ class PdfDbManager {
 
   Future<void> updateFile(final PdfFile file, final int fileId) async {
     if (!_db.isOpen) throw const FilesDataBaseIsClosedException();
-    log((await _db.query(filesTable)).toString());
-    log(fileId.toString());
-    log(file.coverPagePath.toString());
     await _db.update(
       filesTable,
       {

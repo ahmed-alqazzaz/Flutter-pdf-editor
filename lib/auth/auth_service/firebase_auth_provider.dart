@@ -162,7 +162,6 @@ class FirebaseAuthProvider {
     try {
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (currentUser == null) {
-        log("hhh");
         throw UserNotLoggedInAuthException();
       }
     } on FirebaseAuthException catch (e) {

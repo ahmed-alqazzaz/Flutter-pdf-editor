@@ -67,6 +67,7 @@ class PdfPageViewState extends State<PdfPageView> {
 
   @override
   Widget build(BuildContext context) {
+    log(widget.pageNumber.toString());
     final pdfPage = widget.pdfToImageConverter.cache
         .firstWhere((element) => element.pageNumber == widget.pageNumber);
     log("path: ${pdfPage.path} ${widget.pageNumber}");
@@ -153,8 +154,7 @@ class PdfPageViewState extends State<PdfPageView> {
                           )
                         : // use cached image
                         Image.file(
-                            File(widget.pdfToImageConverter
-                                .cache[widget.pageNumber]!.path),
+                            File(pdfPage.path),
                             fit: BoxFit.fill,
                             width: screenWidth,
                             height: height,

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_editor/crud/pdf_db_manager/data/constants.dart';
@@ -31,8 +33,12 @@ class PdfFilesManager {
   }
 
   Future<void> addFile(final PdfFile file) async {
-    files.add(file);
-    return await _dbManager.addFile(file);
+    try {
+      files.add(file);
+      return await _dbManager.addFile(file);
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   Future<void> deleteFile(final PdfFile file) async {

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf_editor/bloc/app_bloc.dart';
+import 'package:pdf_editor/bloc/app_events.dart';
 import 'package:pdf_editor/bloc/app_states.dart';
 import 'package:pdf_editor/viewer/providers/pdf_viewer_related/appbars_visibility_provider.dart';
 
@@ -57,11 +58,9 @@ class _PdfViewerState extends ConsumerState<ConsumerStatefulWidget>
   @override
   void dispose() {
     _transformationController.dispose();
-
-    // restore system UI
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
+      overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
     );
 
     super.dispose();
@@ -71,74 +70,87 @@ class _PdfViewerState extends ConsumerState<ConsumerStatefulWidget>
   Widget build(BuildContext context) {
     final scrollController =
         ref.read(scrollControllerProvider).scrollController;
-    return SafeArea(
-      child: Scaffold(
-        body: BlocConsumer<AppBloc, AppState>(
-          listener: (context, state) {
-            state as AppStateDisplayingPdfViewer;
-            if (state.isLoading == false) {
-              Timer(const Duration(milliseconds: 1500), () {
-                updateViewport();
-              });
 
-              // remove progress bar indicator
-              ref.read(appbarVisibilityProvider).showAppBars(isLoading: false);
-            }
-          },
-          builder: (context, state) {
-            state as AppStateDisplayingPdfViewer;
-            return Stack(
-              children: [
-                SizedBox(
-                  width: 411,
-                  height: 800,
-                ),
-                if (state.isLoading == false) ...[
-                  NotificationListener<ScrollEndNotification>(
-                    onNotification: (notification) {
-                      updateViewport();
-                      return true;
-                    },
-                    child: InteractiveViewer(
-                      transformationController: _transformationController,
-                      onInteractionEnd: (details) {
-                        updateViewport();
-                      },
-                      maxScale: 10,
-                      minScale: 0.1,
-                      child: DraggableScrollbar.semicircle(
-                        controller: scrollController,
-                        child: ListView.separated(
-                          separatorBuilder: (context, index) {
-                            return const Divider(
-                              height: 1,
-                              color: Color.fromRGBO(186, 186, 186, 100),
-                            );
+    return WillPopScope(
+      onWillPop: () async {
+        context.read<AppBloc>().add(const AppEventDisplayHomePage());
+        return false;
+      },
+      child: SafeArea(
+        child: Scaffold(
+          body: BlocConsumer<AppBloc, AppState>(
+            listener: (context, state) {
+              if (state is AppStateDisplayingPdfViewer &&
+                  state.isLoading == false) {
+                Timer(const Duration(milliseconds: 1500), () {
+                  updateViewport();
+                });
+
+                // remove progress bar indicator
+                ref
+                    .read(appbarVisibilityProvider)
+                    .showAppBars(isLoading: false);
+              }
+            },
+            builder: (context, state) {
+              if (state is AppStateDisplayingPdfViewer) {
+                return Stack(
+                  children: [
+                    const SizedBox(
+                      width: 411,
+                      height: 800,
+                    ),
+                    if (state.isLoading == false) ...[
+                      NotificationListener<ScrollEndNotification>(
+                        onNotification: (notification) {
+                          updateViewport();
+                          return true;
+                        },
+                        child: InteractiveViewer(
+                          transformationController: _transformationController,
+                          onInteractionEnd: (details) {
+                            updateViewport();
                           },
-                          controller: scrollController,
-                          itemCount: state.pdfToTmageConverter!.cache.length,
-                          itemBuilder: (context, index) {
-                            _pdfPageKeys[index + 1] =
-                                GlobalKey<PdfPageViewState>();
-                            return BlocProvider(
-                              create: (context) =>
-                                  PageBloc(state.pdfToTmageConverter!),
-                              child: PdfPageView(
-                                key: _pdfPageKeys[index + 1]!,
-                                pageNumber: index + 1,
-                                pdfToImageConverter: state.pdfToTmageConverter!,
-                              ),
-                            );
-                          },
+                          maxScale: 10,
+                          minScale: 0.1,
+                          child: DraggableScrollbar.semicircle(
+                            controller: scrollController,
+                            child: ListView.separated(
+                              separatorBuilder: (context, index) {
+                                return const Divider(
+                                  height: 1,
+                                  color: Color.fromRGBO(186, 186, 186, 100),
+                                );
+                              },
+                              controller: scrollController,
+                              itemCount:
+                                  state.pdfToTmageConverter!.cache.length,
+                              itemBuilder: (context, index) {
+                                _pdfPageKeys[index + 1] =
+                                    GlobalKey<PdfPageViewState>();
+                                return BlocProvider(
+                                  create: (context) =>
+                                      PageBloc(state.pdfToTmageConverter!),
+                                  child: PdfPageView(
+                                    key: _pdfPageKeys[index + 1]!,
+                                    pageNumber: index + 1,
+                                    pdfToImageConverter:
+                                        state.pdfToTmageConverter!,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
-                const SlidingAppBars()
-              ],
-            );
-          },
+                    ],
+                    const SlidingAppBars()
+                  ],
+                );
+              }
+              return Container();
+            },
+          ),
         ),
       ),
     );

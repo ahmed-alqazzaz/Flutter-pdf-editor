@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pdf_editor/bloc/app_bloc.dart';
+import 'package:pdf_editor/bloc/app_events.dart';
 import 'package:pdf_editor/viewer/widgets/sliding_appbars/appbars/top/tab_icon.dart';
 
 import '../../../../providers/pdf_viewer_related/appbars_visibility_provider.dart';
@@ -10,30 +13,36 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const TopAppBar({super.key, required this.tabNumber});
 
   final int tabNumber;
-  PreferredSizeWidget appBar() => AppBar(
-        leading: IconButton(
+  PreferredSizeWidget appBar() {
+    return AppBar(
+      leading: Builder(builder: (context) {
+        return IconButton(
           icon: const Icon(Icons.arrow_back_sharp),
-          onPressed: () {},
-        ),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          const IconButton(
-            onPressed: null,
-            icon: Icon(
-              Icons.find_in_page_outlined,
-              color: Colors.black,
-              size: 28,
-            ),
+          onPressed: () {
+            context.read<AppBloc>().add(const AppEventDisplayHomePage());
+          },
+        );
+      }),
+      backgroundColor: Colors.white,
+      iconTheme: const IconThemeData(color: Colors.black),
+      actions: [
+        const IconButton(
+          onPressed: null,
+          icon: Icon(
+            Icons.find_in_page_outlined,
+            color: Colors.black,
+            size: 28,
           ),
-          TabIcon(tabNumber: tabNumber),
-          const AppbarPopupMenuButton(),
-        ],
-        title: const Text(
-          'AppBar',
-          style: TextStyle(color: Colors.black),
         ),
-      );
+        TabIcon(tabNumber: tabNumber),
+        const AppbarPopupMenuButton(),
+      ],
+      title: const Text(
+        'AppBar',
+        style: TextStyle(color: Colors.black),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

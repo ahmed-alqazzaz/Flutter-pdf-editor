@@ -15,6 +15,7 @@ class PdfRenderer {
     final rustRenderer = RustPdfRenderer.instance();
     final cacheDirectory = await _createCacheDirectory(pdfPath);
     if (!rustRenderer.isIntialized) await rustRenderer.initialize();
+
     await rustRenderer.loadPdf(pdfPath);
     log("caching at $cacheDirectory");
     final cachedPages = await rustRenderer.cacheAllPages(cacheDirectory);
@@ -22,12 +23,12 @@ class PdfRenderer {
     final cache = <CachedPage>[
       for (var i = 0; i < cachedPages.length; i++) ...[
         CachedPage(
-          pageNumber: cachedPages[i].$2,
+          pageNumber: cachedPages[i].$2 + 1,
           size: Size(
             cachedPages[i].$1.width.toDouble(),
             cachedPages[i].$1.height.toDouble(),
           ),
-          path: "$cacheDirectory/image$i.png",
+          path: "$cacheDirectory/image${i + 1}.png",
         )
       ]
     ];

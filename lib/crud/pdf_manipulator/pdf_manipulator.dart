@@ -29,7 +29,6 @@ class PDFManipulator {
     required String targetPath,
     required List<int> pageNumbers,
   }) async {
-    log('selected pages file 1 $pageNumbers');
     final pageIndices = Iterable.generate(pageCount, (i) => i + 1).toList();
     final discardedIndices = pageIndices
       ..removeWhere((index) => pageNumbers.contains(index));

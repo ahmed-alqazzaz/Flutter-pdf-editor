@@ -31,10 +31,7 @@ class RustPdfRenderer {
 
   Future<void> loadPdf(String path) async {
     assert(isIntialized, "library has not been initialized");
-    assert(
-      File(path).existsSync(),
-      "Unable to loacate pdf file with path: $path",
-    );
+    log(path);
     await api.loadPdfFile(filepath: path);
   }
 

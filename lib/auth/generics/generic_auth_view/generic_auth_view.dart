@@ -172,7 +172,6 @@ class _GenericTypeEmailViewState extends State<GenericAuthView> {
           if (state.exception != null) {
             final errorMessage =
                 errorMessages[state.exception.runtimeType] ?? "Unknown error";
-            log(state.exception.toString());
             showErrorMessage(
               context: context,
               text: errorMessage,

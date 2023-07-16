@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -76,6 +77,9 @@ class PdfFileListTile extends StatelessWidget {
         },
       ),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          log(snapshot.error.toString());
+        }
         if (snapshot.hasData) {
           return ClipRRect(
               borderRadius: BorderRadius.circular(coverImageBorderRadius),

@@ -11,6 +11,7 @@ import 'package:pdf_editor/homepage/views/tools/generics/tool.dart';
 import 'package:pdf_editor/homepage/views/tools/tool_views/file_selection_tools/split_file_view.dart';
 import 'package:pdf_editor/homepage/views/tools/tool_views/page_selection_tools/insert_pages_view/insert_pages_view.dart';
 import 'package:pdf_editor/homepage/views/tools/tool_views/page_selection_tools/insert_pages_view/select_pages_view.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../bloc/app_bloc.dart';
 import '../../../../bloc/app_events.dart';
@@ -21,6 +22,7 @@ import '../../../bloc/home_events.dart';
 import '../tool_views/file_selection_tools/merge_files_view.dart';
 import '../tool_views/page_selection_tools/discard_pages_view.dart';
 import '../tool_views/page_selection_tools/extract_pages_view.dart';
+import 'package:share_plus/share_plus.dart' as x;
 
 typedef OnTap = void Function();
 
@@ -227,7 +229,8 @@ class ToolsOnProceedActions {
     );
   }
 
-  void share({required PdfFile file}) {}
+  void share({required PdfFile file}) => Share.shareFiles([file.path]);
+
   void rename({required BuildContext context, required PdfFile file}) {
     final homePageBloc = context.read<HomePageBloc>();
     showRenameFileDialog(

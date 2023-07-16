@@ -1,4 +1,3 @@
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/crud/pdf_db_manager/pdf_files_manager.dart';
@@ -29,7 +28,7 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
         await pdfFilesManager.addFile(event.file).then(
               (_) => add(const HomePageEventDisplayFiles()),
             );
-        FilePicker.platform.clearTemporaryFiles();
+        // FilePicker.platform.clearTemporaryFiles();
       },
     );
     on<HomePageEventUpdateFile>(
