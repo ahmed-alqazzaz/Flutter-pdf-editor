@@ -12,8 +12,8 @@ pub extern "C" fn wire_load_pdf_file(port_: i64, filepath: *mut wire_uint_8_list
 }
 
 #[no_mangle]
-pub extern "C" fn wire_cache_files(port_: i64, cache_dir: *mut wire_uint_8_list) {
-    wire_cache_files_impl(port_, cache_dir)
+pub extern "C" fn wire_cache_current_file(port_: i64, cache_dir: *mut wire_uint_8_list) {
+    wire_cache_current_file_impl(port_, cache_dir)
 }
 
 #[no_mangle]
@@ -26,7 +26,22 @@ pub extern "C" fn wire_render_page(
     wire_render_page_impl(port_, page_number, scale_factor, render_rect)
 }
 
+#[no_mangle]
+pub extern "C" fn wire_page_size(port_: i64, page_number: i16) {
+    wire_page_size_impl(port_, page_number)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_rgba_to_bgra__method__PageImage(port_: i64, that: *mut wire_PageImage) {
+    wire_rgba_to_bgra__method__PageImage_impl(port_, that)
+}
+
 // Section: allocate functions
+
+#[no_mangle]
+pub extern "C" fn new_box_autoadd_page_image_0() -> *mut wire_PageImage {
+    support::new_leak_box_ptr(wire_PageImage::new_with_null_ptr())
+}
 
 #[no_mangle]
 pub extern "C" fn new_box_autoadd_render_rect_0() -> *mut wire_RenderRect {
@@ -52,6 +67,12 @@ impl Wire2Api<String> for *mut wire_uint_8_list {
         String::from_utf8_lossy(&vec).into_owned()
     }
 }
+impl Wire2Api<PageImage> for *mut wire_PageImage {
+    fn wire2api(self) -> PageImage {
+        let wrap = unsafe { support::box_from_leak_ptr(self) };
+        Wire2Api::<PageImage>::wire2api(*wrap).into()
+    }
+}
 impl Wire2Api<RenderRect> for *mut wire_RenderRect {
     fn wire2api(self) -> RenderRect {
         let wrap = unsafe { support::box_from_leak_ptr(self) };
@@ -59,6 +80,17 @@ impl Wire2Api<RenderRect> for *mut wire_RenderRect {
     }
 }
 
+impl Wire2Api<PageImage> for wire_PageImage {
+    fn wire2api(self) -> PageImage {
+        PageImage {
+            data: self.data.wire2api(),
+            pixel_width_count: self.pixel_width_count.wire2api(),
+            pixel_height_count: self.pixel_height_count.wire2api(),
+            page_number: self.page_number.wire2api(),
+            render_rect: self.render_rect.wire2api(),
+        }
+    }
+}
 impl Wire2Api<RenderRect> for wire_RenderRect {
     fn wire2api(self) -> RenderRect {
         RenderRect {
@@ -79,6 +111,16 @@ impl Wire2Api<Vec<u8>> for *mut wire_uint_8_list {
     }
 }
 // Section: wire structs
+
+#[repr(C)]
+#[derive(Clone)]
+pub struct wire_PageImage {
+    data: *mut wire_uint_8_list,
+    pixel_width_count: u32,
+    pixel_height_count: u32,
+    page_number: u8,
+    render_rect: wire_RenderRect,
+}
 
 #[repr(C)]
 #[derive(Clone)]
@@ -105,6 +147,24 @@ pub trait NewWithNullPtr {
 impl<T> NewWithNullPtr for *mut T {
     fn new_with_null_ptr() -> Self {
         std::ptr::null_mut()
+    }
+}
+
+impl NewWithNullPtr for wire_PageImage {
+    fn new_with_null_ptr() -> Self {
+        Self {
+            data: core::ptr::null_mut(),
+            pixel_width_count: Default::default(),
+            pixel_height_count: Default::default(),
+            page_number: Default::default(),
+            render_rect: Default::default(),
+        }
+    }
+}
+
+impl Default for wire_PageImage {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
     }
 }
 

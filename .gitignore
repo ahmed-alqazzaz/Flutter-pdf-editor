@@ -50,3 +50,5 @@ app.*.map.json
 /upload-keystore.jks
 /android/app/local.properties
 /android/app/google-services.json
+/test
+/rust/target

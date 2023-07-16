@@ -47,16 +47,16 @@ fn wire_load_pdf_file_impl(port_: MessagePort, filepath: impl Wire2Api<String> +
         },
     )
 }
-fn wire_cache_files_impl(port_: MessagePort, cache_dir: impl Wire2Api<String> + UnwindSafe) {
+fn wire_cache_current_file_impl(port_: MessagePort, cache_dir: impl Wire2Api<String> + UnwindSafe) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {
-            debug_name: "cache_files",
+            debug_name: "cache_current_file",
             port: Some(port_),
             mode: FfiCallMode::Normal,
         },
         move || {
             let api_cache_dir = cache_dir.wire2api();
-            move |task_callback| cache_files(api_cache_dir)
+            move |task_callback| cache_current_file(api_cache_dir)
         },
     )
 }
@@ -77,6 +77,35 @@ fn wire_render_page_impl(
             let api_scale_factor = scale_factor.wire2api();
             let api_render_rect = render_rect.wire2api();
             move |task_callback| render_page(api_page_number, api_scale_factor, api_render_rect)
+        },
+    )
+}
+fn wire_page_size_impl(port_: MessagePort, page_number: impl Wire2Api<i16> + UnwindSafe) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "page_size",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_page_number = page_number.wire2api();
+            move |task_callback| page_size(api_page_number)
+        },
+    )
+}
+fn wire_rgba_to_bgra__method__PageImage_impl(
+    port_: MessagePort,
+    that: impl Wire2Api<PageImage> + UnwindSafe,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "rgba_to_bgra__method__PageImage",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_that = that.wire2api();
+            move |task_callback| Ok(PageImage::rgba_to_bgra(&api_that))
         },
     )
 }
@@ -114,6 +143,11 @@ impl Wire2Api<i16> for i16 {
     }
 }
 
+impl Wire2Api<u32> for u32 {
+    fn wire2api(self) -> u32 {
+        self
+    }
+}
 impl Wire2Api<u8> for u8 {
     fn wire2api(self) -> u8 {
         self
@@ -126,6 +160,8 @@ impl support::IntoDart for PageImage {
     fn into_dart(self) -> support::DartAbi {
         vec![
             self.data.into_dart(),
+            self.pixel_width_count.into_dart(),
+            self.pixel_height_count.into_dart(),
             self.page_number.into_dart(),
             self.render_rect.into_dart(),
         ]
@@ -146,6 +182,13 @@ impl support::IntoDart for RenderRect {
     }
 }
 impl support::IntoDartExceptPrimitive for RenderRect {}
+
+impl support::IntoDart for Size {
+    fn into_dart(self) -> support::DartAbi {
+        vec![self.width.into_dart(), self.height.into_dart()].into_dart()
+    }
+}
+impl support::IntoDartExceptPrimitive for Size {}
 
 // Section: executor
 

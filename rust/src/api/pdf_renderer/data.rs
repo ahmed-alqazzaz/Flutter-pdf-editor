@@ -1,15 +1,21 @@
+
 pub struct PageImage {
     pub data: Vec<u8>,
+    pub pixel_width_count: u32,
+    pub pixel_height_count: u32,
     pub page_number: u8,
     pub render_rect: RenderRect,
 }
 
 impl PageImage {
-    pub fn new(data: Vec<u8>, page_number: u8, render_rect: RenderRect) -> Self {
+    pub fn new(data: Vec<u8>, page_number: u8, render_rect: RenderRect, pixel_width_count: u32,
+        pixel_height_count: u32) -> Self {
         PageImage {
-            data,
-            page_number,
-            render_rect,
+            data:data,
+            page_number: page_number,
+            render_rect:render_rect,
+            pixel_width_count:pixel_width_count,
+            pixel_height_count:pixel_height_count,
         }
     }
 }
@@ -45,3 +51,8 @@ impl RenderRect {
         self.width as f32 / self.height as f32
     }
 }
+pub struct Size{
+    pub width: u32,
+    pub height: u32,
+}
+
