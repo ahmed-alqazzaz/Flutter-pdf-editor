@@ -28,6 +28,25 @@ class WordExplanationModalView extends StatelessWidget {
   static const double expansionPanelsHeight =
       _expansionPanelHeight * _expansionPanelsCount;
   static const backgroundColor = Color.fromARGB(255, 244, 246, 250);
+
+  Widget _exceptionsHandler(Object? exception) {
+    return Container(
+      color: Colors.white,
+      alignment: Alignment.center,
+      child: () {
+        if (exception is WordLoadingException) {
+          return const Text("Connection Error");
+        } else if (exception is WordUnavailableException) {
+          return const Text("Word Not Found");
+        } else if (exception is OxfordDictionaryScraperUnknownException ||
+            exception is OxfordDictionaryBlockedRequestException) {
+          return const Text("An error occured");
+        }
+        return const Text("unkown error occured");
+      }(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<String> words = [contraction.item1, contraction.item2]
@@ -40,15 +59,8 @@ class WordExplanationModalView extends StatelessWidget {
       child: FutureBuilder(
         future: scraper.search(words),
         builder: (context, snapshot) {
-          if (snapshot.error is WordLoadingException) {
-            return const Text("Connection Error");
-          } else if (snapshot.error is WordUnavailableException) {
-            return const Text("Word Not Found");
-          } else if (snapshot.error
-                  is OxfordDictionaryScraperUnknownException ||
-              snapshot.error is OxfordDictionaryBlockedRequestException) {
-            return const Text("An error occured");
-          } else if (snapshot.hasData) {
+          if (snapshot.hasError) return _exceptionsHandler(snapshot.error);
+          if (snapshot.hasData) {
             final mainWords = snapshot.data!;
             final similarWords = mainWords
                 .map((word) => word.similarWords.toList())
