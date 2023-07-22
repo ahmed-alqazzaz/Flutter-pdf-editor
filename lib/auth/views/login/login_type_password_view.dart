@@ -14,10 +14,7 @@ class LoginTypePasswordView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GenericAuthView(
       key: UniqueKey(),
-      onProceed: () {
-        context.read<AuthBloc>().add(
-            AuthEventLogIn(email: "stevehighly@usa.com", password: "XXXXXXXX"));
-      },
+      onProceed: () {},
       onBack: () {
         context.read<AuthBloc>().add(AuthEventTypeEmail(
               authType: AuthType.login,

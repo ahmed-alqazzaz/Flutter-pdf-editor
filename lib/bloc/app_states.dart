@@ -19,8 +19,10 @@ class AppStateDisplayingPdfViewer extends AppState {
   const AppStateDisplayingPdfViewer({
     this.pdfToTmageConverter,
     required this.isLoading,
+    required this.pdfName,
   });
   final bool isLoading;
+  final String pdfName;
   final PdfRenderer? pdfToTmageConverter;
 
   @override

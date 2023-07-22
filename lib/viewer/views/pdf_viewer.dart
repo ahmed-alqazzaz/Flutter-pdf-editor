@@ -144,7 +144,7 @@ class _PdfViewerState extends ConsumerState<ConsumerStatefulWidget>
                         ),
                       ),
                     ],
-                    const SlidingAppBars()
+                    SlidingAppBars(title: state.pdfName)
                   ],
                 );
               }

@@ -15,21 +15,29 @@ class ToolsBottomSheet extends StatelessWidget {
     final bloc = context.read<HomePageBloc>();
     return ToolsBottomSheet._(file: file, tools: [
       tools.rename(
-          onTap: () => tools.actions.rename(context: context, file: file)),
+          onTap: () => tools.actions
+              .rename(context: context, file: file)
+              .then(Navigator.of(context).pop)),
       tools.delete(onTap: () {
         tools.actions
             .delete(bloc: bloc, context: context, file: file)
-            .then((value) => Navigator.of(context).pop());
+            .then(Navigator.of(context).pop);
       }),
-      tools.share(onTap: () => tools.actions.share(file: file)),
+      tools.share(
+          onTap: () =>
+              tools.actions.share(file: file).then(Navigator.of(context).pop)),
       tools.compress(
           onTap: () => tools.actions.compress(context: context, file: file)),
       tools.discardPages(
-          onTap: () =>
-              tools.actions.discardPages(context: context, file: file)),
+          onTap: () => tools.actions.discardPages(
+              context: context,
+              file: file,
+              onFinnished: Navigator.of(context).pop)),
       tools.extractPages(
-          onTap: () =>
-              tools.actions.extractPages(context: context, file: file)),
+          onTap: () => tools.actions.extractPages(
+              context: context,
+              file: file,
+              onFinnished: Navigator.of(context).pop)),
     ]);
   }
 

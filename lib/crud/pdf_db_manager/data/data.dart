@@ -25,10 +25,8 @@ class PdfFile {
       );
 
   PdfFile updateName(String newName) {
-    final filePath = (path.split('/')..last = '$newName.pdf');
-    return copyWith(
-      path: filePath.join('/'),
-    );
+    final newFilePath = (path.split('/')..last = '$newName.pdf').join('/');
+    return copyWith(path: newFilePath);
   }
 
   String get name => path.split('/').last;

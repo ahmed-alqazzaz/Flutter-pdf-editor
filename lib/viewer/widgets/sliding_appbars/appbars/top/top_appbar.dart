@@ -10,19 +10,22 @@ import '../../generic_sliding_appbar.dart';
 import 'appbar_popup_menu_button.dart/appbar_popup_menu_button.dart';
 
 class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
-  const TopAppBar({super.key, required this.tabNumber});
+  const TopAppBar({super.key, required this.tabNumber, required this.title});
 
   final int tabNumber;
+  final String title;
   PreferredSizeWidget appBar() {
     return AppBar(
-      leading: Builder(builder: (context) {
-        return IconButton(
-          icon: const Icon(Icons.arrow_back_sharp),
-          onPressed: () {
-            context.read<AppBloc>().add(const AppEventDisplayHomePage());
-          },
-        );
-      }),
+      leading: Builder(
+        builder: (context) {
+          return IconButton(
+            icon: const Icon(Icons.arrow_back_sharp),
+            onPressed: () {
+              context.read<AppBloc>().add(const AppEventDisplayHomePage());
+            },
+          );
+        },
+      ),
       backgroundColor: Colors.white,
       iconTheme: const IconThemeData(color: Colors.black),
       actions: [
@@ -37,9 +40,9 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
         TabIcon(tabNumber: tabNumber),
         const AppbarPopupMenuButton(),
       ],
-      title: const Text(
-        'AppBar',
-        style: TextStyle(color: Colors.black),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.black),
       ),
     );
   }

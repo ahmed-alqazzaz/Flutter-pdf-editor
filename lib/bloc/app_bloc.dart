@@ -20,11 +20,18 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     );
     on<AppEventDisplayPdfViewer>(
       (event, emit) async {
-        emit(const AppStateDisplayingPdfViewer(isLoading: true));
-        emit(AppStateDisplayingPdfViewer(
-          isLoading: false,
-          pdfToTmageConverter: await PdfRenderer.open(event.pdfPath),
-        ));
+        final pdfName = event.pdfPath.split("/").last.split(".pdf").first;
+        emit(AppStateDisplayingPdfViewer(isLoading: true, pdfName: pdfName));
+        await PdfRenderer.open(event.pdfPath).then(
+          (value) {
+            emit(
+              AppStateDisplayingPdfViewer(
+                  isLoading: false,
+                  pdfToTmageConverter: value,
+                  pdfName: pdfName),
+            );
+          },
+        );
       },
     );
     on<AppEventDisplayHomePage>(

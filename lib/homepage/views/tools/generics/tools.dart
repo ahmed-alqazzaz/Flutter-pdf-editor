@@ -17,6 +17,7 @@ import '../../../../bloc/app_bloc.dart';
 import '../../../../bloc/app_events.dart';
 import '../../../../crud/pdf_db_manager/data/data.dart';
 import '../../../../helpers/custom_icons.dart/custom_icons.dart';
+import '../../../../pdf_renderer/renderer.dart';
 import '../../../bloc/home_bloc.dart';
 import '../../../bloc/home_events.dart';
 import '../tool_views/file_selection_tools/merge_files_view.dart';
@@ -160,8 +161,9 @@ class ToolsOnProceedActions {
         },
       );
 
-  void compress({required BuildContext context, required PdfFile file}) {
-    requestDirectory().then(
+  Future<void> compress(
+      {required BuildContext context, required PdfFile file}) async {
+    await requestDirectory().then(
       (directory) {
         if (directory != null) {
           final generatedFileName =
@@ -181,6 +183,7 @@ class ToolsOnProceedActions {
   void discardPages({
     required BuildContext context,
     required PdfFile file,
+    Function()? onFinnished,
   }) {
     final homePageBloc = context.read<HomePageBloc>();
     _navigateTo(
@@ -190,6 +193,7 @@ class ToolsOnProceedActions {
         generatedFileName:
             _fileNameGenerator(bloc: homePageBloc, fileName: file.name),
         onProceed: (File file) {
+          onFinnished?.call();
           homePageBloc.add(
             HomePageEventAddFile(
               PdfFile(
@@ -204,7 +208,10 @@ class ToolsOnProceedActions {
     );
   }
 
-  void extractPages({required BuildContext context, required PdfFile file}) {
+  void extractPages(
+      {required BuildContext context,
+      required PdfFile file,
+      Function()? onFinnished}) {
     final homePageBloc = context.read<HomePageBloc>();
     _navigateTo(
       context: context,
@@ -215,6 +222,7 @@ class ToolsOnProceedActions {
           fileName: file.name,
         ),
         onProceed: (File file) {
+          onFinnished?.call();
           homePageBloc.add(
             HomePageEventAddFile(
               PdfFile(
@@ -229,28 +237,31 @@ class ToolsOnProceedActions {
     );
   }
 
-  void share({required PdfFile file}) => Share.shareFiles([file.path]);
+  Future<void> share({required PdfFile file}) async =>
+      await Share.shareFiles([file.path]);
 
-  void rename({required BuildContext context, required PdfFile file}) {
+  Future<void> rename(
+      {required BuildContext context, required PdfFile file}) async {
     final homePageBloc = context.read<HomePageBloc>();
-    showRenameFileDialog(
+    await showRenameFileDialog(
       context: context,
       fileName: file.name,
       onFileNamedChanged: (newName) {
         final newFile = file.updateName(newName);
         PDFManipulator()
             .relocateFile(originalPath: file.path, targetPath: newFile.path);
-        if (file.coverPagePath != null) {}
+        PdfRenderer.relocateCache(
+            previousFileName: file.name, newFileName: newName);
         homePageBloc.add(HomePageEventUpdateFile(newFile));
       },
     );
   }
 
-  void insert({
-    required BuildContext context,
-    required PdfFile file1,
-    required PdfFile file2,
-  }) {
+  void insert(
+      {required BuildContext context,
+      required PdfFile file1,
+      required PdfFile file2,
+      Function()? onFinnished}) {
     final homePageBloc = context.read<HomePageBloc>();
     _navigateTo(
       context: context,
@@ -268,6 +279,7 @@ class ToolsOnProceedActions {
                 fileName: file2.name,
               ),
               onProceed: (file) {
+                onFinnished?.call();
                 homePageBloc.add(
                   HomePageEventAddFile(
                     PdfFile(
@@ -285,9 +297,11 @@ class ToolsOnProceedActions {
     );
   }
 
-  void split({required BuildContext context, required PdfFile file}) {
+  void split(
+      {required BuildContext context,
+      required PdfFile file,
+      Function()? onFinnished}) {
     final homePageBloc = context.read<HomePageBloc>();
-
     _navigateTo(
       context: context,
       screen: SplitFileView(
@@ -303,6 +317,7 @@ class ToolsOnProceedActions {
           ),
         ],
         onProceed: (files) async {
+          onFinnished?.call();
           files.listen(
             (file) {
               homePageBloc.add(
@@ -321,7 +336,10 @@ class ToolsOnProceedActions {
     );
   }
 
-  void merge({required BuildContext context, required List<PdfFile> files}) {
+  void merge(
+      {required BuildContext context,
+      required List<PdfFile> files,
+      Function()? onFinnished}) {
     final homePageBloc = context.read<HomePageBloc>();
     _navigateTo(
         context: context,
@@ -337,6 +355,7 @@ class ToolsOnProceedActions {
                   ]
                 ],
                 onProceed: (file) {
+                  onFinnished?.call();
                   homePageBloc.add(
                     HomePageEventAddFile(
                       PdfFile(

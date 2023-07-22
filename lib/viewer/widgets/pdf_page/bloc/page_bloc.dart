@@ -75,7 +75,9 @@ class PageBloc extends Bloc<PageEvent, PageState> {
           final timer = Stopwatch()..start();
           await TextRecognizer()
               .processImage(
-            InputImage.fromFilePath(renderer.cache[event.pageNumber].path),
+            InputImage.fromFilePath(renderer.cache
+                .firstWhere((element) => element.pageNumber == event.pageNumber)
+                .path),
           )
               .then(
             (recognizedText) {
@@ -92,7 +94,7 @@ class PageBloc extends Bloc<PageEvent, PageState> {
 
   static const Duration _displayingBlankDuration = Duration(milliseconds: 300);
   final PdfRenderer renderer;
-  static const cachedPageWidth = 480;
+  static const cachedPageWidth = 720;
   static const mainPageWidth = 1080;
 
   Timer? _cacheTimer;

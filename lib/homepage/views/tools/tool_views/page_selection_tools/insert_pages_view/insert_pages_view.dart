@@ -75,7 +75,10 @@ class InsertPagesView extends ConsumerWidget {
       title: _title,
       seperator: (index) => _insertionPointBuilder(
         onPressed: () {
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          for (var i = 0; i < 4; i++) {
+            Navigator.of(context).pop();
+          }
+
           _insertPages(
             index: index,
             file1PageCount: file1PageCount,

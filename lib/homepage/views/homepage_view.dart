@@ -8,6 +8,7 @@ import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_app_bar.dar
 import 'package:pdf_editor/homepage/views/generics/app_bars/homepage_navigation_bar.dart';
 import 'package:pdf_editor/homepage/views/tools_view.dart/homepage_tool_view.dart';
 
+import '../../bloc/app_bloc.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_events.dart';
 
@@ -77,9 +78,7 @@ class _HomePageViewState extends State<HomePageView> {
           }
         },
       ),
-      drawer: HomePageDrawer(
-        email: 'stevehighly@usa.com',
-      ),
+      drawer: HomePageDrawer(email: context.read<AppBloc>().currentUser?.email),
       body: PageView(
         onPageChanged: (value) => _currentPageController.add(value),
         controller: _pageController,

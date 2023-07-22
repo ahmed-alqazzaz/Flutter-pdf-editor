@@ -37,6 +37,7 @@ class MergeFilesView extends ToolView {
           (file) {
             onProceed(file);
             onExit(context, ref);
+            Navigator.of(context).pop();
           },
         );
       }

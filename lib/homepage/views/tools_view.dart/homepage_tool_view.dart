@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf_editor/homepage/bloc/home_bloc.dart';
@@ -97,6 +96,7 @@ class HomePageToolsView extends StatelessWidget {
                 _selectFileView(
                   context: context,
                   files: files,
+                  title: 'Select file to insert pages into',
                   onFileTapped: (context, file2) {
                     tools.actions.insert(
                       context: context,

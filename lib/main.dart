@@ -140,7 +140,9 @@ class AppNavigator extends StatelessWidget {
           );
         }
       },
-      child: const CircularProgressIndicator(),
+      child: Builder(builder: (context) {
+        return const CircularProgressIndicator();
+      }),
     );
   }
 }

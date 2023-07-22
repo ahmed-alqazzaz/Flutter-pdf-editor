@@ -49,14 +49,14 @@ class _InsertPagesViewState extends ConsumerState<SeperatePagesView> {
                   const TextStyle(color: GenericHomePageAppBar.titleTextColor),
             ),
           ),
-          Expanded(
-            child: FutureBuilder(
-              future: widget.file.pages,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final pages = snapshot.data!;
-                  ref.read(selectabilityProvider).setIndexCount(pages.length);
-                  return ListView.separated(
+          FutureBuilder(
+            future: widget.file.pages,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final pages = snapshot.data!;
+                ref.read(selectabilityProvider).setIndexCount(pages.length);
+                return Expanded(
+                  child: ListView.separated(
                     controller: _controller,
                     itemCount: pages.length,
                     separatorBuilder: (context, index) {
@@ -64,7 +64,7 @@ class _InsertPagesViewState extends ConsumerState<SeperatePagesView> {
                     },
                     itemBuilder: (context, index) {
                       // TODO: implement a getter for the size
-                      final page = pages[index + 1];
+                      final page = pages[index];
                       final pageSize = page.size;
                       final screenToPdfWidthRatio =
                           screenWidth / pageSize.width;
@@ -78,11 +78,11 @@ class _InsertPagesViewState extends ConsumerState<SeperatePagesView> {
                         ),
                       );
                     },
-                  );
-                }
-                return const LinearProgressIndicator();
-              },
-            ),
+                  ),
+                );
+              }
+              return const LinearProgressIndicator();
+            },
           ),
         ],
       ),

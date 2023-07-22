@@ -5,7 +5,7 @@ import 'package:pdf_editor/homepage/views/generics/dialogs/sign_out_dialog.dart'
 import '../../../bloc/app_bloc.dart';
 
 class HomePageDrawer extends StatelessWidget {
-  factory HomePageDrawer({required String email}) {
+  factory HomePageDrawer({required String? email}) {
     return HomePageDrawer._(
       options: <Option>[
         Option(
@@ -44,12 +44,10 @@ class HomePageDrawer extends StatelessWidget {
   const HomePageDrawer._({required this.options, required this.email});
 
   final List<Option> options;
-  final String email;
+  final String? email;
 
   Widget _profilePictureBuilder() {
     return Builder(builder: (context) {
-      final currentUser = context.read<AppBloc>().currentUser;
-
       return Container(
         width: 80,
         height: 80,
@@ -59,7 +57,7 @@ class HomePageDrawer extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            currentUser?.email?.substring(0, 2).toUpperCase() ?? "",
+            email?.substring(0, 2).toUpperCase() ?? "",
             style: const TextStyle(
               fontSize: 30,
               color: Colors.white,
@@ -74,8 +72,10 @@ class HomePageDrawer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
       child: Text(
-        email,
+        email ?? "",
         style: const TextStyle(color: Colors.black38),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

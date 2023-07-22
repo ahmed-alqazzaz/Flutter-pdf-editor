@@ -30,6 +30,7 @@ class SplitFileView extends ToolView {
   }) {
     final pageCount = ref.read(selectabilityProvider).indexCount!;
     onExit(context, ref);
+    Navigator.of(context).pop();
     requestDirectory().then((directory) async {
       if (directory != null) {
         try {

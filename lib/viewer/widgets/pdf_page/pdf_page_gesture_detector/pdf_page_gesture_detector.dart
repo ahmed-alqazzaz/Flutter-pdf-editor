@@ -1,4 +1,3 @@
-
 import 'package:fk_user_agent/fk_user_agent.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +67,7 @@ class PdfPageGestureDetector extends ConsumerWidget {
               (renderBox.size.width / pdfPageWidth) /
                   (PageBloc.cachedPageWidth / pdfPageWidth),
             );
+            print('$elementAdjustedBoundingBox ${element.text} $position');
             final wordBottomBorder = renderBox.localToGlobal(
               Offset(0, elementAdjustedBoundingBox.bottom),
             );
