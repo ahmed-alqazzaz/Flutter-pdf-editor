@@ -46,5 +46,5 @@ Flutter pdf editor app that allows editing and viewing pdf files
 
 
 - Rename & Delete
-<img src="https://github.com/ahmed-alqazzaz/Flutter-pdf-editor/assets/85782358/0eccd165-558a-4706-bb11-f3968c86ed98.gif" width=400>
+<img src="https://github.com/ahmed-alqazzaz/Flutter-pdf-editor/assets/85782358/0eccd165-558a-4706-bb11-f3968c86ed98" width=400>
 
